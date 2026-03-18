@@ -1,6 +1,6 @@
 // services/openai.js
 const OpenAI = require("openai");
-const { getSystemPrompt } = require("../prompts/systemPrompt");
+const { getSystemPrompt } = require("./systemPrompt");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
