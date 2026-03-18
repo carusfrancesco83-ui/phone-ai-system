@@ -1,14 +1,15 @@
 // services/airtable.js
-// Usa la REST API di Airtable direttamente (senza SDK) per evitare
-// problemi con header HTTP contenenti newline nei valori env.
+// Usa la REST API di Airtable direttamente (senza SDK).
+// Tabella ID: tblGGr8aL3sT02YCF (nome: "Table 1" in Airtable)
 
 async function saveLead(data) {
   const apiKey = (process.env.AIRTABLE_API_KEY || "").replace(/[\r\n\s]/g, "");
   const baseId  = (process.env.AIRTABLE_BASE_ID  || "").replace(/[\r\n\s]/g, "");
+  const tableId = "tblGGr8aL3sT02YCF";
 
   console.log(`📤 Airtable → Base: ${baseId} | Key: ${apiKey.substring(0, 10)}...`);
 
-  const response = await fetch(`https://api.airtable.com/v0/${baseId}/Leads`, {
+  const response = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
     method: "POST",
     headers: {
       Authorization:  `Bearer ${apiKey}`,
@@ -27,7 +28,7 @@ async function saveLead(data) {
         Canale:             data.canale              || "",
         User:               data.user               || "",
         ChatId:             data.chatid              || "",
-        Source:             data.source              || "",
+        "Source ":          data.source              || "",
         Stato:              "COMPLETATA",
         Data:               new Date().toISOString(),
       },

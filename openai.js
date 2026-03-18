@@ -78,14 +78,22 @@ async function getWelcomeMessage() {
   return response.choices[0].message.content;
 }
 
-// Estrae il JSON dal blocco [SALVA_DATI]
+// Estrae il JSON dal blocco [SALVA_DATI] con parsing robusto
 function extractSaveData(message) {
   const match = message.match(/\[SALVA_DATI\]([\s\S]*?)\[\/SALVA_DATI\]/);
   if (!match) return null;
-  try {
-    return JSON.parse(match[1].trim());
-  } catch (e) {
-    console.error("Errore parsing dati:", e.message);
+
+  const raw = match[1].trim();
+
+  // Tentativo 1: JSON valido
+  try { return JSON.parse(raw); } catch {}
+
+  // Tentativo 2: rimuovi virgole trailing prima di } o ]
+  try { return JSON.parse(raw.replace(/,(\s*[}\]])/g, "$1")); } catch {}
+
+  // Tentativo 3: sostituisci apici singoli con doppi
+  try { return JSON.parse(raw.replace(/,(\s*[}\]])/g, "$1").replace(/'/g, '"')); } catch (e) {
+    console.error("Errore parsing dati:", e.message, "| Raw:", raw.substring(0, 120));
     return null;
   }
 }
