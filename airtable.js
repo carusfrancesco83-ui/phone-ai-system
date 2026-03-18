@@ -11,20 +11,20 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
  */
 async function saveLead(data) {
   const record = await base("Leads").create({
-    nome:              data.nome              || "",
-    telefono:          data.telefono          || "",
-    email:             data.email             || "",
-    indirizzo:         data.indirizzo         || "",
-    città:             data.città             || "",
-    servizio:          data.servizio          || "DA_DEFINIRE",
-    problema:          data.problema          || "",
-    messaggiooriginale: data.messaggiooriginale || "",
-    canale:            data.canale            || "",
-    user:              data.user              || "",
-    chatid:            data.chatid            || "",
-    source:            data.source            || "",
-    stato:             "COMPLETATA",
-    data:              new Date().toISOString(),
+    Nome:                 data.nome                 || "",
+    Telefono:             data.telefono             || "",
+    Email:                data.email                || "",
+    Indirizzo:            data.indirizzo            || "",
+    Città:                data.città                || "",
+    Servizio:             data.servizio             || "DA_DEFINIRE",
+    Problema:             data.problema             || "",
+    MessaggioOriginale:   data.messaggiooriginale   || "",
+    Canale:               data.canale               || "",
+    User:                 data.user                 || "",
+    ChatId:               data.chatid               || "",
+    Source:               data.source               || "",
+    Stato:                "COMPLETATA",
+    Data:                 new Date().toISOString(),
   });
 
   console.log(`📋 Lead salvato su Airtable: ${record.id}`);
