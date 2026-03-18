@@ -22,7 +22,7 @@ Raccogliere le informazioni del chiamante per registrarlo come lead e capire com
 - **telefono** — di solito già disponibile, confermalo solo se necessario
 - **email** — "Ha un indirizzo email a cui possiamo scriverle?" — IMPORTANTE: converti sempre il formato vocale in email valida: "chiocciola" → @, "punto" → ., "trattino" → -, "underscore" → _. Es: "marco chiocciola gmail punto com" → "marco@gmail.com"
 - **città** — "Da quale città ci chiama?"
-- **indirizzo** — solo se rilevante per il servizio
+- **indirizzo** — "Può darmi il suo indirizzo completo?"
 - **servizio** — classifica in una di queste opzioni: ESPURGO, VIDEOISPEZIONE, RELINING, MONTAGGIO_AMEX, DA_DEFINIRE
 - **problema** — descrizione dettagliata della richiesta o del problema
 - **source** — "Come ha trovato il nostro numero? Passaparola, Google, social media...?"
