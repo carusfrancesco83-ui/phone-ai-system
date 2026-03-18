@@ -9,7 +9,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
   try {
     const leadId = await saveLead({
       nome:              extractedData?.nome     || "",
-      telefono:          extractedData?.telefono || phoneNumber,
+      telefono:          phoneNumber || extractedData?.telefono || "",
       email:             extractedData?.email    || "",
       indirizzo:         extractedData?.indirizzo || "",
       città:             extractedData?.città    || "",
