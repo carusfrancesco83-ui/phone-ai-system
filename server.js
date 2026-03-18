@@ -21,6 +21,22 @@ app.use("/twilio", twilioRoutes);
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+// Debug Airtable: verifica token e lista tabelle disponibili
+app.get("/debug/airtable", async (req, res) => {
+  const apiKey = (process.env.AIRTABLE_API_KEY || "").replace(/[\r\n\s]/g, "");
+  const baseId  = (process.env.AIRTABLE_BASE_ID  || "").replace(/[\r\n\s]/g, "");
+
+  try {
+    const r = await fetch(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    const body = await r.json();
+    res.json({ status: r.status, apiKeyPrefix: apiKey.substring(0, 12), baseId, body });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
