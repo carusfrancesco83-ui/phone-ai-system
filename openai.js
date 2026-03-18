@@ -88,12 +88,15 @@ function extractSaveData(message) {
   // Tentativo 1: JSON valido
   try { return JSON.parse(raw); } catch {}
 
-  // Tentativo 2: rimuovi virgole trailing prima di } o ]
-  try { return JSON.parse(raw.replace(/,(\s*[}\]])/g, "$1")); } catch {}
+  // Pipeline di pulizia progressiva
+  let s = raw;
+  s = s.replace(/,(\s*[}\]])/g, "$1");          // virgole trailing
+  s = s.replace(/'/g, '"');                       // apici singoli → doppi
+  // chiavi senza apici: nome: → "nome":  (copre anche lettere accentate come città)
+  s = s.replace(/([{,]\s*)([\w\u00C0-\u024F]+)\s*:/g, '$1"$2":');
 
-  // Tentativo 3: sostituisci apici singoli con doppi
-  try { return JSON.parse(raw.replace(/,(\s*[}\]])/g, "$1").replace(/'/g, '"')); } catch (e) {
-    console.error("Errore parsing dati:", e.message, "| Raw:", raw.substring(0, 120));
+  try { return JSON.parse(s); } catch (e) {
+    console.error("Errore parsing dati:", e.message, "| Raw:", raw);
     return null;
   }
 }
