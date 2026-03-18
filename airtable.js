@@ -29,7 +29,7 @@ async function saveLead(data) {
         User:               data.user               || "",
         ChatId:             data.chatid              || "",
         "Source ":          data.source              || "",
-        Stato:              "COMPLETATA",
+        Stato:              "ATTIVA",
         Data:               new Date().toISOString(),
       },
     }),
