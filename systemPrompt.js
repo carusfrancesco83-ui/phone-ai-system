@@ -20,7 +20,7 @@ Raccogliere le informazioni del chiamante per registrarlo come lead e capire com
 ## DATI DA RACCOGLIERE (in ordine naturale)
 - **nome e cognome** — "Mi può dire il suo nome?"
 - **telefono** — di solito già disponibile, confermalo solo se necessario
-- **email** — "Ha un indirizzo email a cui possiamo scriverle?"
+- **email** — "Ha un indirizzo email a cui possiamo scriverle?" — IMPORTANTE: converti sempre il formato vocale in email valida: "chiocciola" → @, "punto" → ., "trattino" → -, "underscore" → _. Es: "marco chiocciola gmail punto com" → "marco@gmail.com"
 - **città** — "Da quale città ci chiama?"
 - **indirizzo** — solo se rilevante per il servizio
 - **servizio** — classifica in una di queste opzioni: ESPURGO, VIDEOISPEZIONE, RELINING, MONTAGGIO_AMEX, DA_DEFINIRE
