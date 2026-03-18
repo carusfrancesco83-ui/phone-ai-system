@@ -1,8 +1,8 @@
 // services/airtable.js
 const Airtable = require("airtable");
 
-const apiKey = process.env.AIRTABLE_API_KEY || "";
-const baseId = process.env.AIRTABLE_BASE_ID || "";
+const apiKey = (process.env.AIRTABLE_API_KEY || "").trim();
+const baseId = (process.env.AIRTABLE_BASE_ID || "").trim();
 console.log(`🔑 Airtable init — API key: ${apiKey.substring(0, 10)}... | Base: ${baseId}`);
 const base = new Airtable({ apiKey }).base(baseId);
 
