@@ -16,14 +16,14 @@ async function saveLead(data) {
     email:             data.email             || "",
     indirizzo:         data.indirizzo         || "",
     città:             data.città             || "",
-    servizio:          data.servizio          || "",
+    servizio:          data.servizio          || "DA_DEFINIRE",
     problema:          data.problema          || "",
     messaggiooriginale: data.messaggiooriginale || "",
     canale:            data.canale            || "",
     user:              data.user              || "",
     chatid:            data.chatid            || "",
     source:            data.source            || "",
-    stato:             "completata",
+    stato:             "COMPLETATA",
     data:              new Date().toISOString(),
   });
 

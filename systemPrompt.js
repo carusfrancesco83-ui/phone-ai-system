@@ -23,7 +23,7 @@ Raccogliere le informazioni del chiamante per registrarlo come lead e capire com
 - **email** — "Ha un indirizzo email a cui possiamo scriverle?"
 - **città** — "Da quale città ci chiama?"
 - **indirizzo** — solo se rilevante per il servizio
-- **servizio** — "Quale servizio sta cercando?" oppure "Come possiamo aiutarla?"
+- **servizio** — classifica in una di queste opzioni: ESPURGO, VIDEOISPEZIONE, RELINING, DA_DEFINIRE
 - **problema** — descrizione dettagliata della richiesta o del problema
 - **source** — "Come ha trovato il nostro numero? Passaparola, Google, social media...?"
 
@@ -37,7 +37,7 @@ Quando hai raccolto tutte le informazioni necessarie, includi questo blocco nel 
   "email": "email@esempio.com",
   "città": "Roma",
   "indirizzo": "Via...",
-  "servizio": "servizio richiesto",
+  "servizio": "ESPURGO",
   "problema": "descrizione della richiesta",
   "source": "come ha trovato il numero"
 }
