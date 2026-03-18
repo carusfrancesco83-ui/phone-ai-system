@@ -5,7 +5,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-const twilioRoutes = require("../routes/twilio");
+const twilioRoutes = require("./twilio");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +19,8 @@ app.use(bodyParser.json());
 app.use("/twilio", twilioRoutes);
 
 // Health check
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
