@@ -30,7 +30,7 @@ router.post("/incoming", async (req, res) => {
     session.transcript.push(`AI: ${welcomeText}`);
 
     // Parla e poi ascolta
-    twiml.say({ language: "it-IT", voice: "Polly.Bianca" }, welcomeText);
+    twiml.say({ language: "it-IT", voice: "Polly.Bianca-Neural" }, welcomeText);
 
     twiml.gather({
       input: "speech",
@@ -66,7 +66,7 @@ router.post("/gather", async (req, res) => {
   try {
     if (!speechResult || confidence < 0.3) {
       twiml.say(
-        { language: "it-IT", voice: "Polly.Bianca" },
+        { language: "it-IT", voice: "Polly.Bianca-Neural" },
         "Mi scusi, non ho capito. Può ripetere?"
       );
     } else {
@@ -86,7 +86,7 @@ router.post("/gather", async (req, res) => {
         }).catch(console.error);
       }
 
-      twiml.say({ language: "it-IT", voice: "Polly.Bianca" }, message);
+      twiml.say({ language: "it-IT", voice: "Polly.Bianca-Neural" }, message);
     }
 
     // Controlla se la chiamata si sta concludendo
@@ -113,7 +113,7 @@ router.post("/gather", async (req, res) => {
   } catch (error) {
     console.error("Errore gather:", error.message);
     twiml.say(
-      { language: "it-IT", voice: "Polly.Bianca" },
+      { language: "it-IT", voice: "Polly.Bianca-Neural" },
       "Si è verificato un problema. La ricontatteremo al più presto."
     );
     twiml.hangup();
@@ -134,7 +134,7 @@ router.post("/no-input", async (req, res) => {
 
     if (noInputCount >= 2) {
       twiml.say(
-        { language: "it-IT", voice: "Polly.Bianca" },
+        { language: "it-IT", voice: "Polly.Bianca-Neural" },
         "Non ricevo risposta. La ringrazio e arrivederci."
       );
       twiml.hangup();
@@ -143,7 +143,7 @@ router.post("/no-input", async (req, res) => {
   }
 
   twiml.say(
-    { language: "it-IT", voice: "Polly.Bianca" },
+    { language: "it-IT", voice: "Polly.Bianca-Neural" },
     "C'è ancora qualcuno? Come posso aiutarla?"
   );
   twiml.gather({
