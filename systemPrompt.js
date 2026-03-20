@@ -1,8 +1,21 @@
 // prompts/systemPrompt.js
 
+function getGreeting() {
+  const ora = new Date().toLocaleString("it-IT", {
+    timeZone: "Europe/Rome",
+    hour: "numeric",
+    hour12: false,
+  });
+  const h = parseInt(ora, 10);
+  if (h < 12) return "Buongiorno";
+  if (h < 18) return "Buon pomeriggio";
+  return "Buona sera";
+}
+
 function getSystemPrompt() {
   const businessName = process.env.BUSINESS_NAME || "la nostra azienda";
   const language = process.env.BUSINESS_LANGUAGE || "italiano";
+  const saluto = getGreeting();
 
   return `Sei un assistente telefonico AI professionale di ${businessName}.
 Parli in ${language} in modo naturale, cordiale e conciso.
@@ -12,7 +25,7 @@ Rispondi sempre in modo breve (max 2-3 frasi), come in una vera telefonata.
 Raccogliere le informazioni del chiamante per registrarlo come lead e capire come possiamo aiutarlo.
 
 ## FLUSSO DELLA CHIAMATA
-1. Saluta: "Buongiorno, sono l'assistente di ${businessName}. Come posso aiutarla?"
+1. Saluta: "${saluto}, sono l'assistente di ${businessName}. Come posso aiutarla?"
 2. Ascolta il motivo della chiamata
 3. Raccogli i dati necessari (vedi sotto), uno alla volta in modo naturale
 4. Quando hai raccolto tutti i dati, RIEPILOGA ad alta voce: "Perfetto, riepilogo i dati: Nome [nome], email [email], città [città], indirizzo [indirizzo], servizio [servizio]. È tutto corretto?"
@@ -60,4 +73,4 @@ Il JSON deve usare doppi apici per tutte le chiavi e valori stringa. Non aggiung
 - Se il chiamante non vuole dare alcune informazioni, va bene: metti stringa vuota nel JSON`;
 }
 
-module.exports = { getSystemPrompt };
+module.exports = { getSystemPrompt, getGreeting };

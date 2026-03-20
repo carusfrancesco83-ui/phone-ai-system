@@ -6,6 +6,7 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
 
 const openaiService = require("./openai");
 const { saveCallData } = require("./dataSaver");
+const { getGreeting } = require("./systemPrompt");
 
 // ─── POST /twilio/incoming ────────────────────────────────────────────────────
 // Twilio chiama questo endpoint quando arriva una chiamata
@@ -22,7 +23,7 @@ router.post("/incoming", async (req, res) => {
 
     // Messaggio di benvenuto
     const businessName = process.env.BUSINESS_NAME || "la nostra azienda";
-    const welcomeText = `Buongiorno, sono l'assistente di ${businessName}. Come posso aiutarla?`;
+    const welcomeText = `${getGreeting()}, sono l'assistente di ${businessName}. Come posso aiutarla?`;
 
     // Aggiungi alla history della sessione
     const session = openaiService.getSession(callSid);
