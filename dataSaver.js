@@ -17,7 +17,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
       servizio:          extractedData?.servizio || "",
       problema:          extractedData?.problema || "",
       source:            extractedData?.source   || "",
-      messaggiooriginale: transcript,
+      messaggiooriginale: transcript.split("\n").filter(r => r.startsWith("Chiamante:")).map(r => r.replace("Chiamante: ", "")).join(" | "),
       canale:            "Chiamata Vocale",
       user:              phoneNumber,
       chatid:            callSid,
