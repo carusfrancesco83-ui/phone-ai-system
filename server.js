@@ -33,21 +33,25 @@ app.get("/debug/telegram", (req, res) => {
   });
 });
 
-// Test notifica Telegram
+// Test notifica Telegram (risposta raw Telegram)
 app.get("/test-telegram", async (req, res) => {
-  const { sendWhatsAppNotifica } = require("./whatsapp");
+  const token  = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId = process.env.TELEGRAM_CHAT_ID || "";
+  const url    = `https://api.telegram.org/bot${token}/sendMessage`;
+
   try {
-    await sendWhatsAppNotifica({
-      nome:               "Mario Rossi (TEST)",
-      telefono:           "+39 000 000 0000",
-      città:              "Roma",
-      servizio:           "ESPURGO",
-      messaggiooriginale: "Questo è un messaggio di test",
-      data:               new Date().toLocaleString("it-IT"),
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: "Test notifica Ecosan - funziona!",
+      }),
     });
-    res.json({ status: "ok", messaggio: "Notifica Telegram inviata" });
+    const body = await r.json();
+    res.json({ http_status: r.status, telegram_response: body });
   } catch (e) {
-    res.json({ status: "errore", errore: e.message });
+    res.json({ errore: e.message });
   }
 });
 
