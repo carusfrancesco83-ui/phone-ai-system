@@ -20,11 +20,16 @@ async function sendEmailNotifica(leadData) {
   }
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: gmailUser,
       pass: gmailPassword,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 
   const subject = `📞 Nuova richiesta ${servizio || "DA_DEFINIRE"} — ${nome || "Sconosciuto"}`;
@@ -40,14 +45,18 @@ async function sendEmailNotifica(leadData) {
     `Indirizzo: ${indirizzo || "N/D"}\n\n` +
     `Problema:\n${problema  || "N/D"}\n`;
 
-  await transporter.sendMail({
-    from:    `"Phone AI System" <${gmailUser}>`,
-    to:      emailTo,
-    subject,
-    text,
-  });
-
-  console.log(`📧 Email notifica inviata a ${emailTo}`);
+  try {
+    await transporter.sendMail({
+      from:    `"Phone AI System" <${gmailUser}>`,
+      to:      emailTo,
+      subject,
+      text,
+    });
+    console.log(`📧 Email notifica inviata a ${emailTo}`);
+  } catch (err) {
+    console.error(`❌ Email SMTP errore: ${err.message}`);
+    throw err;
+  }
 }
 
 module.exports = { sendEmailNotifica };
