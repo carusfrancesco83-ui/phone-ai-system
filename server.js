@@ -71,6 +71,39 @@ app.get("/debug/airtable", async (req, res) => {
   }
 });
 
+// Debug variabili Gmail
+app.get("/debug/gmail", (req, res) => {
+  const user = (process.env.GMAIL_USER || "").trim();
+  const pass = (process.env.GMAIL_APP_PASSWORD || "").trim();
+  const to   = (process.env.GMAIL_NOTIFY_TO || user).trim();
+  res.json({
+    GMAIL_USER_presente:         user.length > 0,
+    GMAIL_USER_prefisso:         user ? user.substring(0, 5) + "..." : "NON_SET",
+    GMAIL_APP_PASSWORD_presente: pass.length > 0,
+    GMAIL_APP_PASSWORD_lunghezza: pass.length,
+    GMAIL_NOTIFY_TO:             to || "NON_SET",
+  });
+});
+
+// Test invio email Gmail
+app.get("/test-gmail", async (req, res) => {
+  const { sendEmailNotifica } = require("./gmail");
+  try {
+    await sendEmailNotifica({
+      nome:      "Test Railway",
+      telefono:  "+39000000000",
+      email:     "test@test.it",
+      problema:  "Email di test dalla route /test-gmail",
+      servizio:  "Test",
+      città:     "Test",
+      indirizzo: "Via Test 1",
+    });
+    res.json({ successo: true, messaggio: "Email inviata — controlla la casella" });
+  } catch (e) {
+    res.json({ successo: false, errore: e.message, codice: e.code || null });
+  }
+});
+
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
