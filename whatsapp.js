@@ -1,64 +1,58 @@
 // whatsapp.js
-// Invia notifiche SMS ai responsabili quando arriva un nuovo lead.
+// Invia notifiche Telegram ai responsabili quando arriva un nuovo lead.
 // Modifica solo questo blocco per aggiornare mappature.
 
 // ============================================================
-// MAPPATURA SERVIZIO → NUMERO SMS RESPONSABILE
-// Formato: "+39XXXXXXXXXX"
+// MAPPATURA SERVIZIO → VARIABILE ENV DEL CHAT ID TELEGRAM
 // ============================================================
-const RESPONSABILI = {
-  ESPURGO:        "+393493684887",
-  RELINING:       "+39XXXXXXXXXX",
-  VIDEOISPEZIONE: "+39XXXXXXXXXX",
-  MONTAGGIO_AMEX: "+39XXXXXXXXXX",
-  DA_DEFINIRE:    "+39XXXXXXXXXX",  // numero admin/fallback
+const CHAT_ID_MAP = {
+  ESPURGO:        process.env.TELEGRAM_CHAT_ESPURGO,
+  RELINING:       process.env.TELEGRAM_CHAT_RELINING,
+  VIDEOISPEZIONE: process.env.TELEGRAM_CHAT_VIDEOISPEZIONE,
+  MONTAGGIO_AMEX: process.env.TELEGRAM_CHAT_MONTAGGIO_AMEX,
+  DA_DEFINIRE:    process.env.TELEGRAM_CHAT_DA_DEFINIRE,
 };
-
-// Numero Twilio mittente SMS (già configurato in ENV)
-const FROM_NUMBER = (process.env.TWILIO_PHONE_NUMBER || "").trim();
 
 async function sendWhatsAppNotifica(leadData) {
   const { nome, telefono, città, servizio, messaggiooriginale, data } = leadData;
 
-  const destinatario = RESPONSABILI[servizio] || RESPONSABILI.DA_DEFINIRE;
-  if (!destinatario || destinatario.includes("XXXXXXXXXX")) {
-    console.warn(`⚠️ Numero SMS non configurato per servizio: ${servizio}`);
+  const token   = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId  = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE;
+
+  if (!token) {
+    console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
+    return;
+  }
+  if (!chatId) {
+    console.warn(`⚠️ Chat ID Telegram non configurato per servizio: ${servizio}`);
     return;
   }
 
-  const accountSid = (process.env.TWILIO_ACCOUNT_SID || "").trim();
-  const authToken  = (process.env.TWILIO_AUTH_TOKEN  || "").trim();
+  const testo =
+    `🔔 *NUOVA RICHIESTA - ${servizio}*\n` +
+    `👤 Cliente: ${nome || "N/D"}\n` +
+    `📞 Telefono: ${telefono || "N/D"}\n` +
+    `📍 Città: ${città || "N/D"}\n` +
+    `🔧 Problema: ${messaggiooriginale || "N/D"}\n` +
+    `📅 Data: ${data || new Date().toLocaleString("it-IT")}`;
 
-  const messaggio =
-    `NUOVA RICHIESTA - ${servizio}\n` +
-    `Cliente: ${nome || "N/D"}\n` +
-    `Telefono: ${telefono || "N/D"}\n` +
-    `Citta: ${città || "N/D"}\n` +
-    `Problema: ${messaggiooriginale || "N/D"}\n` +
-    `Data: ${data || new Date().toLocaleString("it-IT")}`;
-
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-
-  const body = new URLSearchParams({
-    From: FROM_NUMBER,
-    To:   destinatario,
-    Body: messaggio,
-  });
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
   const response = await fetch(url, {
     method: "POST",
-    headers: {
-      Authorization: "Basic " + Buffer.from(`${accountSid}:${authToken}`).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id:    chatId,
+      text:       testo,
+      parse_mode: "Markdown",
+    }),
   });
 
   if (!response.ok) {
     const err = await response.text();
-    console.error(`❌ SMS error ${response.status}: ${err}`);
+    console.error(`❌ Telegram error ${response.status}: ${err}`);
   } else {
-    console.log(`📲 SMS inviato a ${destinatario} (${servizio})`);
+    console.log(`📲 Telegram inviato a ${servizio} (chat: ${chatId})`);
   }
 }
 

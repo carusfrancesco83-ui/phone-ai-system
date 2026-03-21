@@ -21,6 +21,24 @@ app.use("/twilio", twilioRoutes);
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+// Test notifica Telegram
+app.get("/test-telegram", async (req, res) => {
+  const { sendWhatsAppNotifica } = require("./whatsapp");
+  try {
+    await sendWhatsAppNotifica({
+      nome:               "Mario Rossi (TEST)",
+      telefono:           "+39 000 000 0000",
+      città:              "Roma",
+      servizio:           "ESPURGO",
+      messaggiooriginale: "Questo è un messaggio di test",
+      data:               new Date().toLocaleString("it-IT"),
+    });
+    res.json({ status: "ok", messaggio: "Notifica Telegram inviata" });
+  } catch (e) {
+    res.json({ status: "errore", errore: e.message });
+  }
+});
+
 // Debug Airtable: verifica token e lista tabelle disponibili
 app.get("/debug/airtable", async (req, res) => {
   const apiKey = (process.env.AIRTABLE_API_KEY || "").replace(/[\r\n\s]/g, "");
