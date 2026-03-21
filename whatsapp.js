@@ -29,12 +29,12 @@ async function sendWhatsAppNotifica(leadData) {
   }
 
   const testo =
-    `🔔 *NUOVA RICHIESTA - ${servizio}*\n` +
-    `👤 Cliente: ${nome || "N/D"}\n` +
-    `📞 Telefono: ${telefono || "N/D"}\n` +
-    `📍 Città: ${città || "N/D"}\n` +
-    `🔧 Problema: ${messaggiooriginale || "N/D"}\n` +
-    `📅 Data: ${data || new Date().toLocaleString("it-IT")}`;
+    `NUOVA RICHIESTA - ${servizio}\n` +
+    `Cliente: ${nome || "N/D"}\n` +
+    `Telefono: ${telefono || "N/D"}\n` +
+    `Citta: ${città || "N/D"}\n` +
+    `Problema: ${messaggiooriginale || "N/D"}\n` +
+    `Data: ${data || new Date().toLocaleString("it-IT")}`;
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
 
@@ -42,9 +42,8 @@ async function sendWhatsAppNotifica(leadData) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      chat_id:    chatId,
-      text:       testo,
-      parse_mode: "Markdown",
+      chat_id: chatId,
+      text:    testo,
     }),
   });
 
