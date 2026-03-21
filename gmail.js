@@ -12,8 +12,10 @@ async function sendEmailNotifica(leadData) {
   const gmailPassword = (process.env.GMAIL_APP_PASSWORD || "").trim();
   const emailTo       = (process.env.GMAIL_NOTIFY_TO || gmailUser).trim();
 
+  console.log(`📧 Tentativo email → user="${gmailUser ? gmailUser : "NON_SET"}" pass="${gmailPassword ? "***" : "NON_SET"}"`);
+
   if (!gmailUser || !gmailPassword) {
-    console.warn("⚠️ GMAIL_USER o GMAIL_APP_PASSWORD non configurati — email non inviata");
+    console.log("⚠️ GMAIL_USER o GMAIL_APP_PASSWORD non configurati — email non inviata");
     return;
   }
 
