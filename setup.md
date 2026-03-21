@@ -94,7 +94,24 @@ Verifica che i campi salvati corrispondano alle colonne della base Airtable del 
 
 ---
 
-## 5. Configurazione Airtable
+## 5. Configurazione Gmail (notifiche email)
+
+Il sistema può inviare un'email di notifica a ogni nuovo lead, in aggiunta a Telegram.
+
+1. Usa un account Gmail dedicato (consigliato) o quello aziendale
+2. Attiva la **verifica in due passaggi** sull'account Google
+3. Crea un'**App Password**:
+   - Vai su [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   - Seleziona "Altro (nome personalizzato)" → es. `Phone AI System`
+   - Copia la password generata (16 caratteri, es. `abcd efgh ijkl mnop`)
+4. Aggiungi le variabili d'ambiente su Railway (vedi sezione 7)
+
+> ⚠️ Non usare la password del tuo account Google — usa solo l'App Password generata.
+> Se `GMAIL_NOTIFY_TO` non è impostato, l'email viene inviata allo stesso `GMAIL_USER`.
+
+---
+
+## 6. Configurazione Airtable
 
 1. Crea una nuova base su [airtable.com](https://airtable.com)
 2. Crea una tabella chiamata **Leads** con queste colonne:
@@ -147,6 +164,11 @@ TELEGRAM_CHAT_DA_DEFINIRE=262161386
 TELEGRAM_CHAT_[SERVIZIO1]=xxxxxxxxxxxx
 TELEGRAM_CHAT_[SERVIZIO2]=xxxxxxxxxxxx
 
+# Gmail (notifiche email — opzionale)
+GMAIL_USER=tuo-account@gmail.com
+GMAIL_APP_PASSWORD=abcd efgh ijkl mnop
+GMAIL_NOTIFY_TO=responsabile@azienda.it
+
 # URL pubblico del server (Railway lo fornisce)
 BASE_URL=https://[tuo-progetto].up.railway.app
 ```
@@ -177,6 +199,7 @@ BASE_URL=https://[tuo-progetto].up.railway.app
 - [ ] Numero Twilio acquistato e webhook configurato
 - [ ] Bot Telegram creato e chat_id ottenuto (valore di `chat.id`, non `update_id`)
 - [ ] Base Airtable creata con tutte le colonne
+- [ ] App Password Gmail generata (se si vuole notifica email)
 - [ ] Tutte le variabili d'ambiente aggiunte su Railway
 - [ ] `systemPrompt.js` aggiornato con nome azienda e servizi
 - [ ] `whatsapp.js` aggiornato con i servizi del cliente

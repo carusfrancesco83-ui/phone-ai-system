@@ -1,6 +1,7 @@
 // services/dataSaver.js
 const { saveLead } = require("./airtable");
 const { sendWhatsAppNotifica } = require("./whatsapp");
+const { sendEmailNotifica } = require("./gmail");
 
 /**
  * Salva i dati raccolti dalla chiamata vocale nella tabella Leads.
@@ -25,14 +26,23 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
 
     console.log(`✅ Lead chiamata salvato: ${leadId}`);
 
-    // Notifica WhatsApp al responsabile del servizio (non bloccante)
-    sendWhatsAppNotifica({
-      nome:     extractedData?.nome     || "",
-      telefono: phoneNumber || extractedData?.telefono || "",
-      email:    extractedData?.email    || "",
-      problema: extractedData?.problema || "",
-      servizio: extractedData?.servizio || "DA_DEFINIRE",
-    }).catch(err => console.error("❌ Telegram notifica fallita:", err.message));
+    const notifData = {
+      nome:      extractedData?.nome      || "",
+      telefono:  phoneNumber || extractedData?.telefono || "",
+      email:     extractedData?.email     || "",
+      problema:  extractedData?.problema  || "",
+      servizio:  extractedData?.servizio  || "DA_DEFINIRE",
+      città:     extractedData?.città     || "",
+      indirizzo: extractedData?.indirizzo || "",
+    };
+
+    // Notifica Telegram al responsabile del servizio (non bloccante)
+    sendWhatsAppNotifica(notifData)
+      .catch(err => console.error("❌ Telegram notifica fallita:", err.message));
+
+    // Notifica Email Gmail (non bloccante)
+    sendEmailNotifica(notifData)
+      .catch(err => console.error("❌ Email notifica fallita:", err.message));
 
     return leadId;
 
