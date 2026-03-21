@@ -17,7 +17,7 @@ async function sendWhatsAppNotifica(leadData) {
   const { nome, telefono, città, servizio, messaggiooriginale, data } = leadData;
 
   const token   = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
-  const chatId  = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE;
+  const chatId  = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
 
   if (!token) {
     console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
