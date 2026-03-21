@@ -14,10 +14,10 @@ const CHAT_ID_MAP = {
 };
 
 async function sendWhatsAppNotifica(leadData) {
-  const { nome, telefono, città, servizio, messaggiooriginale, data } = leadData;
+  const { nome, telefono, email, problema, servizio } = leadData;
 
-  const token   = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
-  const chatId  = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
+  const token  = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
 
   if (!token) {
     console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
@@ -29,12 +29,11 @@ async function sendWhatsAppNotifica(leadData) {
   }
 
   const testo =
-    `NUOVA RICHIESTA - ${servizio}\n` +
-    `Cliente: ${nome || "N/D"}\n` +
+    `NUOVA RICHIESTA - ${servizio}\n\n` +
+    `Nome:     ${nome     || "N/D"}\n` +
     `Telefono: ${telefono || "N/D"}\n` +
-    `Citta: ${città || "N/D"}\n` +
-    `Problema: ${messaggiooriginale || "N/D"}\n` +
-    `Data: ${data || new Date().toLocaleString("it-IT")}`;
+    `Email:    ${email    || "N/D"}\n` +
+    `Problema: ${problema || "N/D"}`;
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
 

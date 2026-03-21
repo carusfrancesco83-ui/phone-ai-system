@@ -27,13 +27,12 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
 
     // Notifica WhatsApp al responsabile del servizio (non bloccante)
     sendWhatsAppNotifica({
-      nome:               extractedData?.nome     || "",
-      telefono:           phoneNumber || extractedData?.telefono || "",
-      città:              extractedData?.città    || "",
-      servizio:           extractedData?.servizio || "DA_DEFINIRE",
-      messaggiooriginale: transcript,
-      data:               new Date().toLocaleString("it-IT"),
-    }).catch(err => console.error("❌ WhatsApp notifica fallita:", err.message));
+      nome:     extractedData?.nome     || "",
+      telefono: phoneNumber || extractedData?.telefono || "",
+      email:    extractedData?.email    || "",
+      problema: extractedData?.problema || "",
+      servizio: extractedData?.servizio || "DA_DEFINIRE",
+    }).catch(err => console.error("❌ Telegram notifica fallita:", err.message));
 
     return leadId;
 
