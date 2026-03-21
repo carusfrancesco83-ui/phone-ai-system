@@ -18,6 +18,39 @@ app.use(bodyParser.json());
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 app.use("/twilio", twilioRoutes);
 
+// ─── POST /webhook/lead-notify ────────────────────────────────────────────────
+// Chiamato da n8n (WhatsApp bot) dopo aver completato un lead.
+// Body JSON: { nome, telefono, email, indirizzo, città, servizio, problema, source }
+app.post("/webhook/lead-notify", async (req, res) => {
+  const { sendWhatsAppNotifica } = require("./whatsapp");
+  const { sendEmailNotifica }    = require("./gmail");
+
+  const lead = req.body || {};
+  const notifData = {
+    nome:      lead.nome      || "",
+    telefono:  lead.telefono  || "",
+    email:     lead.email     || "",
+    problema:  lead.problema  || "",
+    servizio:  lead.servizio  || "DA_DEFINIRE",
+    città:     lead.città     || "",
+    indirizzo: lead.indirizzo || "",
+  };
+
+  console.log(`📲 /webhook/lead-notify ricevuto: ${JSON.stringify(notifData)}`);
+
+  const results = await Promise.allSettled([
+    sendWhatsAppNotifica(notifData),
+    sendEmailNotifica(notifData),
+  ]);
+
+  results.forEach((r, i) => {
+    if (r.status === "rejected")
+      console.error(`❌ Notifica ${i === 0 ? "Telegram" : "Email"} fallita:`, r.reason?.message);
+  });
+
+  res.json({ ok: true });
+});
+
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
