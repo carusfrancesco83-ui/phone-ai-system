@@ -21,6 +21,18 @@ app.use("/twilio", twilioRoutes);
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
+// Debug variabili Telegram
+app.get("/debug/telegram", (req, res) => {
+  const token = process.env.TELEGRAM_BOT_TOKEN || "";
+  const chatId = process.env.TELEGRAM_CHAT_ID || "";
+  res.json({
+    token_presente: token.length > 0,
+    token_prefisso: token.substring(0, 10) + "...",
+    chat_id: chatId,
+    chat_id_presente: chatId.length > 0,
+  });
+});
+
 // Test notifica Telegram
 app.get("/test-telegram", async (req, res) => {
   const { sendWhatsAppNotifica } = require("./whatsapp");
