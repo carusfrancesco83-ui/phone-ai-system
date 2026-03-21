@@ -13,6 +13,7 @@ function initSession(callSid, phoneNumber) {
     messages: [],
     transcript: [],
     startTime: Date.now(),
+    leadSaved: false,    // true se [SALVA_DATI] già processato
   });
 }
 
@@ -51,6 +52,11 @@ async function chat(callSid, userMessage) {
 
   // controlla se ci sono dati da salvare
   const extractedData = extractSaveData(assistantMessage);
+
+  // segna che il lead è stato salvato (per evitare duplicati nel fallback)
+  if (extractedData) {
+    session.leadSaved = true;
+  }
 
   // pulisci il messaggio (rimuovi il blocco JSON)
   const cleanMessage = assistantMessage

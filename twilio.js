@@ -167,6 +167,31 @@ router.post("/status", async (req, res) => {
   console.log(`📊 Status [${CallSid}]: ${CallStatus}`);
 
   if (CallStatus === "completed") {
+    const session = openaiService.getSession(CallSid);
+
+    // Se la chiamata è finita senza [SALVA_DATI] ma c'è almeno un messaggio
+    // dell'utente → salva transcript grezzo e notifica l'operatore
+    const hasUserMessages = session?.transcript?.some(l => l.startsWith("Chiamante:"));
+    if (session && !session.leadSaved && hasUserMessages) {
+      console.log(`⚠️ Chiamata terminata senza [SALVA_DATI] — salvo transcript grezzo`);
+      const { saveCallData } = require("./dataSaver");
+      saveCallData({
+        callSid: CallSid,
+        phoneNumber: session.phoneNumber,
+        extractedData: {
+          nome: "",
+          telefono: session.phoneNumber,
+          email: "",
+          città: "",
+          indirizzo: "",
+          servizio: "DA_DEFINIRE",
+          problema: "(chiamata incompleta — vedi transcript)",
+          source: "",
+        },
+        transcript: session.transcript.join("\n"),
+      }).catch(err => console.error("❌ Salvataggio grezzo fallito:", err.message));
+    }
+
     openaiService.deleteSession(CallSid);
   }
 
