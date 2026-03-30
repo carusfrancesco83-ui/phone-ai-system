@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const twilioRoutes = require("./twilio");
+const { sendWhatsAppNotifica } = require("./whatsapp");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,19 @@ app.use("/twilio", twilioRoutes);
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+// Endpoint chiamato da n8n per inviare notifica Telegram quando arriva un lead da WhatsApp
+app.post("/webhook/lead-notify", async (req, res) => {
+  const { nome, telefono, email, problema, servizio } = req.body;
+
+  try {
+    await sendWhatsAppNotifica({ nome, telefono, email, problema, servizio: (servizio || "DA_DEFINIRE").toUpperCase() });
+    res.json({ status: "ok" });
+  } catch (e) {
+    console.error("❌ lead-notify error:", e.message);
+    res.status(500).json({ status: "error", message: e.message });
+  }
+});
 
 // Debug variabili Telegram
 app.get("/debug/telegram", (req, res) => {

@@ -13,10 +13,22 @@ const CHAT_ID_MAP = {
   DA_DEFINIRE:    process.env.TELEGRAM_CHAT_DA_DEFINIRE,
 };
 
+// ============================================================
+// MAPPATURA SERVIZIO → BOT TOKEN (opzionale per bot separati)
+// Se non configurato, usa TELEGRAM_BOT_TOKEN come fallback
+// ============================================================
+const BOT_TOKEN_MAP = {
+  ESPURGO:        process.env.TELEGRAM_BOT_TOKEN_ESPURGO,
+  RELINING:       process.env.TELEGRAM_BOT_TOKEN_RELINING,
+  VIDEOISPEZIONE: process.env.TELEGRAM_BOT_TOKEN_VIDEOISPEZIONE,
+  MONTAGGIO_AMEX: process.env.TELEGRAM_BOT_TOKEN_MONTAGGIO_AMEX,
+  DA_DEFINIRE:    process.env.TELEGRAM_BOT_TOKEN_DA_DEFINIRE,
+};
+
 async function sendWhatsAppNotifica(leadData) {
   const { nome, telefono, email, problema, servizio } = leadData;
 
-  const token  = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const token  = (BOT_TOKEN_MAP[servizio] || process.env.TELEGRAM_BOT_TOKEN || "").trim();
   const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
 
   if (!token) {
