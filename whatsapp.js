@@ -67,8 +67,13 @@ async function sendWhatsAppNotifica(leadData) {
   const chatIdAll = process.env.TELEGRAM_CHAT_ALL || "";
 
   if (tokenAll && chatIdAll) {
-    const testoBreve = `📋 ${servizio} | ${nome || "N/D"} | ${telefono || "N/D"}`;
-    const ok = await sendTelegramMessage(tokenAll, chatIdAll, testoBreve);
+    const testoAll =
+      `NUOVA RICHIESTA - ${servizio}\n\n` +
+      `Nome:     ${nome     || "N/D"}\n` +
+      `Telefono: ${telefono || "N/D"}\n` +
+      `Email:    ${email    || "N/D"}\n` +
+      `Problema: ${problema || "N/D"}`;
+    const ok = await sendTelegramMessage(tokenAll, chatIdAll, testoAll);
     if (ok) console.log(`📲 Telegram generale inviato (chat: ${chatIdAll})`);
   }
 }
