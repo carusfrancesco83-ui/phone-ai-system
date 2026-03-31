@@ -25,44 +25,51 @@ const BOT_TOKEN_MAP = {
   DA_DEFINIRE:    process.env.TELEGRAM_BOT_TOKEN_DA_DEFINIRE,
 };
 
+async function sendTelegramMessage(token, chatId, testo) {
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, text: testo }),
+  });
+  if (!response.ok) {
+    const err = await response.text();
+    console.error(`❌ Telegram error ${response.status}: ${err}`);
+  }
+  return response.ok;
+}
+
 async function sendWhatsAppNotifica(leadData) {
   const { nome, telefono, email, problema, servizio } = leadData;
 
+  // Notifica specifica per servizio
   const token  = (BOT_TOKEN_MAP[servizio] || process.env.TELEGRAM_BOT_TOKEN || "").trim();
   const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
 
   if (!token) {
     console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
-    return;
-  }
-  if (!chatId) {
+  } else if (!chatId) {
     console.warn(`⚠️ Chat ID Telegram non configurato per servizio: ${servizio}`);
-    return;
+  } else {
+    const testo =
+      `NUOVA RICHIESTA - ${servizio}\n\n` +
+      `Nome:     ${nome     || "N/D"}\n` +
+      `Telefono: ${telefono || "N/D"}\n` +
+      `Email:    ${email    || "N/D"}\n` +
+      `Problema: ${problema || "N/D"}`;
+
+    const ok = await sendTelegramMessage(token, chatId, testo);
+    if (ok) console.log(`📲 Telegram inviato a ${servizio} (chat: ${chatId})`);
   }
 
-  const testo =
-    `NUOVA RICHIESTA - ${servizio}\n\n` +
-    `Nome:     ${nome     || "N/D"}\n` +
-    `Telefono: ${telefono || "N/D"}\n` +
-    `Email:    ${email    || "N/D"}\n` +
-    `Problema: ${problema || "N/D"}`;
+  // Notifica generale (monitoraggio)
+  const tokenAll = (process.env.TELEGRAM_BOT_TOKEN_ALL || "").trim();
+  const chatIdAll = process.env.TELEGRAM_CHAT_ALL || "";
 
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text:    testo,
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    console.error(`❌ Telegram error ${response.status}: ${err}`);
-  } else {
-    console.log(`📲 Telegram inviato a ${servizio} (chat: ${chatId})`);
+  if (tokenAll && chatIdAll) {
+    const testoBreve = `📋 ${servizio} | ${nome || "N/D"} | ${telefono || "N/D"}`;
+    const ok = await sendTelegramMessage(tokenAll, chatIdAll, testoBreve);
+    if (ok) console.log(`📲 Telegram generale inviato (chat: ${chatIdAll})`);
   }
 }
 
