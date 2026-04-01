@@ -48,7 +48,10 @@ async function sendWhatsAppNotifica(leadData) {
   const token  = (BOT_TOKEN_MAP[servizio] || process.env.TELEGRAM_BOT_TOKEN || "").trim();
   const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
 
-  if (!token) {
+  // Per ESPURGO la notifica specifica è gestita da n8n (con risposta AI + bottoni)
+  if (servizio === "ESPURGO") {
+    console.log(`📲 ESPURGO: notifica specifica delegata a n8n`);
+  } else if (!token) {
     console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
   } else if (!chatId) {
     console.warn(`⚠️ Chat ID Telegram non configurato per servizio: ${servizio}`);
