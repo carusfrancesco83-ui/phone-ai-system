@@ -25,9 +25,26 @@ app.get("/health", (req, res) => res.json({ status: "ok" }));
 // Endpoint chiamato da n8n per inviare notifica Telegram quando arriva un lead da WhatsApp
 app.post("/webhook/lead-notify", async (req, res) => {
   const { nome, telefono, email, problema, servizio } = req.body;
+  const servizioUpper = (servizio || "DA_DEFINIRE").toUpperCase();
 
   try {
-    await sendWhatsAppNotifica({ nome, telefono, email, problema, servizio: (servizio || "DA_DEFINIRE").toUpperCase() });
+    await sendWhatsAppNotifica({ nome, telefono, email, problema, servizio: servizioUpper });
+
+    // Per lead ESPURGO: inoltra al workflow n8n per AI email + bozza Gmail
+    if (servizioUpper === "ESPURGO") {
+      const n8nUrl = process.env.N8N_WEBHOOK_ESPURGO || "https://informaticoimprovvisato.app.n8n.cloud/webhook/espurgo-lead";
+      try {
+        await fetch(n8nUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, telefono, email, problema, servizio: servizioUpper }),
+        });
+        console.log(`📧 Lead ESPURGO inoltrato a n8n: ${nome} (${telefono})`);
+      } catch (e2) {
+        console.error("⚠️ Errore invio n8n ESPURGO:", e2.message);
+      }
+    }
+
     res.json({ status: "ok" });
   } catch (e) {
     console.error("❌ lead-notify error:", e.message);
