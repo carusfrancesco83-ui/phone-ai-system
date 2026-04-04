@@ -18,6 +18,7 @@ async function saveLead(data) {
     body: JSON.stringify({
       fields: {
         Nome:               data.nome               || "",
+        Cognome:            data.cognome             || "",
         Telefono:           data.telefono            || "",
         Email:              data.email               || "",
         Indirizzo:          data.indirizzo           || "",

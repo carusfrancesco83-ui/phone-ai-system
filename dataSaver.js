@@ -11,6 +11,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
   try {
     const leadId = await saveLead({
       nome:              extractedData?.nome     || "",
+      cognome:           extractedData?.cognome  || "",
       telefono:          phoneNumber || extractedData?.telefono || "",
       email:             extractedData?.email    || "",
       indirizzo:         extractedData?.indirizzo || "",
@@ -27,7 +28,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
     console.log(`✅ Lead chiamata salvato: ${leadId}`);
 
     const notifData = {
-      nome:      extractedData?.nome      || "",
+      nome:      `${extractedData?.nome || ""} ${extractedData?.cognome || ""}`.trim(),
       telefono:  phoneNumber || extractedData?.telefono || "",
       email:     extractedData?.email     || "",
       problema:  extractedData?.problema  || "",
