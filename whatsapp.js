@@ -42,16 +42,14 @@ async function sendTelegramMessage(token, chatId, testo, parseMode) {
 }
 
 async function sendWhatsAppNotifica(leadData) {
-  const { nome, telefono, email, problema, servizio } = leadData;
+  const { nome, cognome, telefono, email, problema, servizio } = leadData;
+  const nomeCompleto = [nome, cognome].filter(Boolean).join(" ") || "N/D";
 
-  // Notifica specifica per servizio
+  // ── Notifica specifica per servizio ──────────────────────────────────────────
   const token  = (BOT_TOKEN_MAP[servizio] || process.env.TELEGRAM_BOT_TOKEN || "").trim();
   const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
 
-  // Per ESPURGO la notifica specifica è gestita da n8n (con risposta AI + bottoni)
-  if (servizio === "ESPURGO") {
-    console.log(`📲 ESPURGO: notifica specifica delegata a n8n`);
-  } else if (!token) {
+  if (!token) {
     console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
   } else if (!chatId) {
     console.warn(`⚠️ Chat ID Telegram non configurato per servizio: ${servizio}`);
@@ -59,7 +57,7 @@ async function sendWhatsAppNotifica(leadData) {
     const tel = (telefono || "").replace(/\D/g, "");
     const testo =
       `<b>NUOVA RICHIESTA - ${servizio}</b>\n\n` +
-      `<b>Nome:</b>     ${nome     || "N/D"}\n` +
+      `<b>Nome:</b>     ${nomeCompleto}\n` +
       `<b>Telefono:</b> ${tel ? `<a href="tel:+${tel}">+${tel}</a>` : "N/D"}\n` +
       `<b>Email:</b>    ${email    || "N/D"}\n` +
       `<b>Problema:</b> ${problema || "N/D"}`;
@@ -68,18 +66,18 @@ async function sendWhatsAppNotifica(leadData) {
     if (ok) console.log(`📲 Telegram inviato a ${servizio} (chat: ${chatId})`);
   }
 
-  // Notifica generale (monitoraggio)
-  const tokenAll = (process.env.TELEGRAM_BOT_TOKEN_ALL || "").trim();
+  // ── Notifica generale (tutti i lead, solo dati anagrafici) ───────────────────
+  const tokenAll  = (process.env.TELEGRAM_BOT_TOKEN_ALL || "").trim();
   const chatIdAll = process.env.TELEGRAM_CHAT_ALL || "";
 
   if (tokenAll && chatIdAll) {
     const tel = (telefono || "").replace(/\D/g, "");
     const testoAll =
-      `<b>NUOVA RICHIESTA - ${servizio}</b>\n\n` +
+      `<b>NUOVO LEAD - ${servizio}</b>\n\n` +
       `<b>Nome:</b>     ${nome     || "N/D"}\n` +
+      `<b>Cognome:</b>  ${cognome  || "N/D"}\n` +
       `<b>Telefono:</b> ${tel ? `<a href="tel:+${tel}">+${tel}</a>` : "N/D"}\n` +
-      `<b>Email:</b>    ${email    || "N/D"}\n` +
-      `<b>Problema:</b> ${problema || "N/D"}`;
+      `<b>Email:</b>    ${email    || "N/D"}`;
     const ok = await sendTelegramMessage(tokenAll, chatIdAll, testoAll, "HTML");
     if (ok) console.log(`📲 Telegram generale inviato (chat: ${chatIdAll})`);
   }

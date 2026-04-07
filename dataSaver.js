@@ -28,7 +28,8 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
     console.log(`✅ Lead chiamata salvato: ${leadId}`);
 
     const notifData = {
-      nome:      `${extractedData?.nome || ""} ${extractedData?.cognome || ""}`.trim(),
+      nome:      extractedData?.nome      || "",
+      cognome:   extractedData?.cognome   || "",
       telefono:  phoneNumber || extractedData?.telefono || "",
       email:     extractedData?.email     || "",
       problema:  extractedData?.problema  || "",
