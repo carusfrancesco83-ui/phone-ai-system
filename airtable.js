@@ -16,6 +16,7 @@ async function saveLead(data) {
     email:       data.email       || "",
     indirizzo:   data.indirizzo   || "",
     citta:       data.città       || "",
+    cap:         data.cap         || "",
     descrizione_richiesta: data.problema || "",
     chat_id:               data.chatid  || "",
     fonte:                 "Chiamata vocale",

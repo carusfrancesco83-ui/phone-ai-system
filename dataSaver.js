@@ -16,6 +16,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
       email:             extractedData?.email    || "",
       indirizzo:         extractedData?.indirizzo || "",
       città:             extractedData?.città    || "",
+      cap:               extractedData?.cap      || "",
       servizio:          extractedData?.servizio || "",
       problema:          extractedData?.problema || "",
       source:            extractedData?.source   || "",
