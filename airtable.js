@@ -22,7 +22,7 @@ async function saveLead(data) {
     stato:                 "Nuovo",
   };
 
-  if (data.servizio && ["Espurgo", "Relining", "Videoispezione", "Montaggio Amex", "Non classificato"].includes(data.servizio)) {
+  if (data.servizio && ["Espurgo", "Relining", "Videoispezione", "Montaggio amex", "Non classificato"].includes(data.servizio)) {
     fields.servizio_richiesto = data.servizio;
   }
 
