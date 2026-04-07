@@ -16,14 +16,14 @@ async function saveLead(data) {
     email:       data.email       || "",
     indirizzo:   data.indirizzo   || "",
     citta:       data.città       || "",
-    descrizione: data.problema    || "",
-    chat_id:     data.chatid      || "",
-    fonte:       "Chiamata vocale",
-    stato:       "Nuovo",
+    descrizione_richiesta: data.problema || "",
+    chat_id:               data.chatid  || "",
+    fonte:                 "Chiamata vocale",
+    stato:                 "Nuovo",
   };
 
-  if (data.servizio && ["Espurgo", "Relining", "Videoispezione", "Montaggio amex"].includes(data.servizio)) {
-    fields.servizio = data.servizio;
+  if (data.servizio && ["Espurgo", "Relining", "Videoispezione", "Montaggio Amex", "Non classificato"].includes(data.servizio)) {
+    fields.servizio_richiesto = data.servizio;
   }
 
   const response = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
