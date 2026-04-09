@@ -57,9 +57,10 @@ async function saveLead(data) {
     CAP:       data.cap       || "",
     Problema:  data.problema  || "",
     ChatId:    data.chatid    || "",
-    Source:    "Chiamata Vocale",
-    Canale:    "Telefono",
-    Stato:     "Nuovo",
+    Source:      "Chiamata Vocale",
+    Canale:      "Telefono",
+    Stato:       "Nuovo",
+    Provenienza: data.source || "",
   };
 
   const servizioAirtable = SERVIZIO_MAP[data.servizio];
