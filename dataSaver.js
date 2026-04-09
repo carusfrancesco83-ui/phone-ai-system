@@ -2,6 +2,7 @@
 const { saveLead } = require("./airtable");
 const { sendWhatsAppNotifica } = require("./whatsapp");
 const { sendEmailNotifica } = require("./gmail");
+const { generateSummary } = require("./openai");
 
 /**
  * Salva i dati raccolti dalla chiamata vocale nella tabella Leads.
@@ -9,6 +10,14 @@ const { sendEmailNotifica } = require("./gmail");
  */
 async function saveCallData({ callSid, phoneNumber, extractedData, transcript }) {
   try {
+    // Genera riassunto AI della chiamata per note_interne
+    let noteInterne = "";
+    try {
+      noteInterne = await generateSummary(transcript);
+    } catch (e) {
+      console.warn("⚠️ Riassunto non generato:", e.message);
+    }
+
     const leadId = await saveLead({
       nome:              extractedData?.nome     || "",
       cognome:           extractedData?.cognome  || "",
@@ -24,6 +33,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
       canale:            "Chiamata Vocale",
       user:              phoneNumber,
       chatid:            callSid,
+      noteInterne,
     });
 
     console.log(`✅ Lead chiamata salvato: ${leadId}`);

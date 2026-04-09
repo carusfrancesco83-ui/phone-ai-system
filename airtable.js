@@ -57,11 +57,12 @@ async function saveLead(data) {
     CAP:       data.cap       || "",
     Problema:  data.problema  || "",
     ChatId:    data.chatid    || "",
-    Source:      "Chiamata Vocale",
-    Canale:      "Telefono",
-    Stato:       "Nuovo",
-    Stage:       "Lead",
-    Provenienza: data.source || "",
+    Source:        "Chiamata Vocale",
+    Canale:        "Telefono",
+    Stato:         "Nuovo",
+    Stage:         "Lead",
+    Provenienza:   data.source       || "",
+    note_interne:  data.noteInterne  || "",
   };
 
   const servizioAirtable = SERVIZIO_MAP[data.servizio];
