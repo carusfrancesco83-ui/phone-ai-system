@@ -60,6 +60,7 @@ async function saveLead(data) {
     Source:      "Chiamata Vocale",
     Canale:      "Telefono",
     Stato:       "Nuovo",
+    Stage:       "Lead",
     Provenienza: data.source || "",
   };
 
