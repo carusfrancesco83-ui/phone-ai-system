@@ -9,6 +9,8 @@ async function generateSpeech(text) {
     throw new Error("ELEVENLABS_API_KEY o ELEVENLABS_VOICE_ID mancanti");
   }
 
+  console.log(`🎙️ ElevenLabs → Voice ID: ${voiceId} | Testo: "${text.substring(0, 40)}..."`);
+
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
     {
