@@ -38,7 +38,14 @@ async function saveLead(data) {
   const { apiKey, baseId } = getAirtableConfig();
   console.log(`📤 Airtable → Base: ${baseId} | Key: ${apiKey.substring(0, 10)}...`);
 
-  const SERVIZI_VALIDI = ["Espurgo", "Relining", "Videoispezione", "Montaggio amex", "Non classificato"];
+  // Mappa valori AI → valori esatti Airtable (MAIUSCOLO con underscore)
+  const SERVIZIO_MAP = {
+    "Espurgo":         "ESPURGO",
+    "Relining":        "RELINING",
+    "Videoispezione":  "VIDEOISPEZIONE",
+    "Montaggio amex":  "MONTAGGIO_AMEX",
+    "Non classificato":"DA_DEFINIRE",
+  };
 
   const fields = {
     Nome:      data.nome      || "",
@@ -51,12 +58,13 @@ async function saveLead(data) {
     Problema:  data.problema  || "",
     ChatId:    data.chatid    || "",
     Source:    "Chiamata Vocale",
-    Canale:    "Chiamata Vocale",
+    Canale:    "Telefono",
     Stato:     "Nuovo",
   };
 
-  if (data.servizio && SERVIZI_VALIDI.includes(data.servizio)) {
-    fields.Servizio = data.servizio;
+  const servizioAirtable = SERVIZIO_MAP[data.servizio];
+  if (servizioAirtable) {
+    fields.Servizio = servizioAirtable;
   }
 
   const result = await airtablePost(TABLE_LEADS, fields);
