@@ -1,10 +1,26 @@
 // services/airtable.js
-// Usa la REST API di Airtable direttamente (senza SDK).
 // Info_Requests : tblGGr8aL3sT02YCF
 // Log_Chat      : tbleD1HKPfI4wCBOg
 
-const TABLE_LEADS = "tblGGr8aL3sT02YCF"; // Info_Requests
-const TABLE_LOG   = "tbleD1HKPfI4wCBOg";  // Log_Chat
+const TABLE_LEADS = "tblGGr8aL3sT02YCF";
+const TABLE_LOG   = "tbleD1HKPfI4wCBOg";
+
+// ─── Valori singleSelect verificati via MCP ───────────────────────────────────
+// Info_Requests.Servizio : ESPURGO | RELINING | VIDEOISPEZIONE | MONTAGGIO_AMEX | DA_DEFINIRE | PULIZIA_CISTERNE | MAPPATURA_RETI
+// Info_Requests.Canale   : WhatsApp | Email | Telefono | Web | Altro | Telegram
+// Info_Requests.Stato    : Nuovo | In lavorazione | Completato | Non qualificato
+// Info_Requests.Stage    : Lead | Contattato | Preventivo | Chiuso
+// Log_Chat.Tipo_Messaggio: text | audio | voice
+// Log_Chat.STT_Status    : not_needed | success | failed
+// Log_Chat.AI_Parse_Status: ok | failed
+
+const SERVIZIO_MAP = {
+  "Espurgo":          "ESPURGO",
+  "Relining":         "RELINING",
+  "Videoispezione":   "VIDEOISPEZIONE",
+  "Montaggio amex":   "MONTAGGIO_AMEX",
+  "Non classificato": "DA_DEFINIRE",
+};
 
 function getAirtableConfig() {
   return {
@@ -38,31 +54,21 @@ async function saveLead(data) {
   const { apiKey, baseId } = getAirtableConfig();
   console.log(`📤 Airtable → Base: ${baseId} | Key: ${apiKey.substring(0, 10)}...`);
 
-  // Mappa valori AI → valori esatti Airtable (MAIUSCOLO con underscore)
-  const SERVIZIO_MAP = {
-    "Espurgo":         "ESPURGO",
-    "Relining":        "RELINING",
-    "Videoispezione":  "VIDEOISPEZIONE",
-    "Montaggio amex":  "MONTAGGIO_AMEX",
-    "Non classificato":"DA_DEFINIRE",
-  };
-
   const fields = {
-    Nome:      data.nome      || "",
-    Cognome:   data.cognome   || "",
-    Telefono:  data.telefono  || "",
-    Email:     data.email     || "",
-    Indirizzo: data.indirizzo || "",
-    Città:     data.città     || "",
-    CAP:       data.cap       || "",
-    Problema:  data.problema  || "",
-    ChatId:    data.chatid    || "",
-    Source:        "Chiamata Vocale",
-    Canale:        "Telefono",
-    Stato:         "Nuovo",
-    Stage:         "Lead",
-    Provenienza:   data.source       || "",
-    note_interne:  data.noteInterne  || "",
+    Nome:        data.nome       || "",
+    Cognome:     data.cognome    || "",
+    Telefono:    data.telefono   || "",
+    Email:       data.email      || "",
+    Indirizzo:   data.indirizzo  || "",
+    Città:       data.città      || "",
+    CAP:         data.cap        || "",
+    Problema:    data.problema   || "",
+    ChatId:      data.chatid     || "",
+    Canale:      "Telefono",
+    Stato:       "Nuovo",
+    Stage:       "Lead",
+    Provenienza: data.source      || "",
+    note_interne: data.noteInterne || "",
   };
 
   const servizioAirtable = SERVIZIO_MAP[data.servizio];
@@ -77,18 +83,15 @@ async function saveLead(data) {
 
 // ─── LOGGA MESSAGGIO su Log_Chat ─────────────────────────────────────────────
 async function logMessage(data) {
-  // data: { messageId, telefono, testoMessaggio, rispostaInviata,
-  //         tipoMessaggio, sttStatus, aiParseStatus, timestamp }
   const fields = {
-    Message_ID:          data.messageId         || "",
-    Telefono:            data.telefono           || "",
-    Testo_Messaggio:     data.testoMessaggio     || "",
-    Risposta_Inviata:    data.rispostaInviata    || "",
-    Tipo_Messaggio:      data.tipoMessaggio      || "chiamata_vocale",
-    Canale:              "Chiamata Vocale",
-    STT_Status:          data.sttStatus          || "ok",
-    AI_Parse_Status:     data.aiParseStatus      || "nessun_dato",
-    Timestamp_Messaggio: data.timestamp          || new Date().toISOString(),
+    Message_ID:          data.messageId      || "",
+    Telefono:            data.telefono       || "",
+    Testo_Messaggio:     data.testoMessaggio || "",
+    Risposta_Inviata:    data.rispostaInviata || "",
+    Tipo_Messaggio:      "voice",
+    STT_Status:          data.sttStatus      || "not_needed",
+    AI_Parse_Status:     data.aiParseStatus  || "failed",
+    Timestamp_Messaggio: data.timestamp      || new Date().toISOString(),
   };
 
   try {
@@ -96,7 +99,6 @@ async function logMessage(data) {
     console.log(`📝 Log_Chat salvato: ${result.id}`);
     return result.id;
   } catch (err) {
-    // Il log non deve bloccare la chiamata
     console.error("⚠️ Errore Log_Chat:", err.message);
   }
 }

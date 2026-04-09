@@ -101,14 +101,13 @@ router.post("/gather", async (req, res) => {
 
       // Log ogni scambio su Log_Chat (non bloccante)
       logMessage({
-        messageId:      `${callSid}-${Date.now()}`,
-        telefono:       req.body.From || "unknown",
-        testoMessaggio: speechResult,
+        messageId:       `${callSid}-${Date.now()}`,
+        telefono:        req.body.From || "unknown",
+        testoMessaggio:  speechResult,
         rispostaInviata: message,
-        tipoMessaggio:  "chiamata_vocale",
-        sttStatus:      confidence >= 0.3 ? "ok" : "bassa_confidenza",
-        aiParseStatus:  extractedData ? "dati_estratti" : "nessun_dato",
-        timestamp:      new Date().toISOString(),
+        sttStatus:       confidence >= 0.3 ? "success" : "failed",
+        aiParseStatus:   extractedData ? "ok" : "failed",
+        timestamp:       new Date().toISOString(),
       }).catch(() => {});
 
       await ttsPlay(twiml, message);
