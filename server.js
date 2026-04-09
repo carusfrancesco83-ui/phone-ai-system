@@ -7,6 +7,7 @@ const cors = require("cors");
 
 const twilioRoutes = require("./twilio");
 const { sendWhatsAppNotifica } = require("./whatsapp");
+const audioCache = require("./audioCache");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,15 @@ app.use("/twilio", twilioRoutes);
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+// Serve audio MP3 generato da ElevenLabs (token temporaneo, TTL 2 min)
+app.get("/audio/:token", (req, res) => {
+  const buf = audioCache.get(req.params.token);
+  if (!buf) return res.status(404).send("Audio non trovato o scaduto");
+  res.set("Content-Type", "audio/mpeg");
+  res.set("Cache-Control", "no-store");
+  res.send(buf);
+});
 
 // Endpoint chiamato da n8n per inviare notifica Telegram quando arriva un lead da WhatsApp
 app.post("/webhook/lead-notify", async (req, res) => {

@@ -7,6 +7,21 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
 const openaiService = require("./openai");
 const { saveCallData } = require("./dataSaver");
 const { getGreeting } = require("./systemPrompt");
+const { logMessage } = require("./airtable");
+const { generateSpeech } = require("./elevenlabs");
+const audioCache = require("./audioCache");
+
+// Genera audio ElevenLabs e aggiunge twiml.play(); fallback su Google Neural2
+async function ttsPlay(twiml, text) {
+  try {
+    const buffer = await generateSpeech(text);
+    const token  = audioCache.store(buffer);
+    twiml.play(`${process.env.BASE_URL}/audio/${token}`);
+  } catch (err) {
+    console.error("⚠️ ElevenLabs fallback su Google:", err.message);
+    twiml.say({ language: "it-IT", voice: "Google.it-IT-Neural2-C" }, text);
+  }
+}
 
 // ─── POST /twilio/incoming ────────────────────────────────────────────────────
 // Twilio chiama questo endpoint quando arriva una chiamata
@@ -31,7 +46,7 @@ router.post("/incoming", async (req, res) => {
     session.transcript.push(`AI: ${welcomeText}`);
 
     // Parla e poi ascolta
-    twiml.say({ language: "it-IT", voice: "Google.it-IT-Neural2-A" }, welcomeText);
+    await ttsPlay(twiml, welcomeText);
 
     twiml.gather({
       input: "speech",
@@ -66,10 +81,7 @@ router.post("/gather", async (req, res) => {
 
   try {
     if (!speechResult || confidence < 0.3) {
-      twiml.say(
-        { language: "it-IT", voice: "Google.it-IT-Neural2-A" },
-        "Mi scusi, non ho capito. Può ripetere?"
-      );
+      await ttsPlay(twiml, "Mi scusi, non ho capito. Può ripetere?");
     } else {
       const { message, extractedData, transcript } = await openaiService.chat(
         callSid,
@@ -87,7 +99,19 @@ router.post("/gather", async (req, res) => {
         }).catch(console.error);
       }
 
-      twiml.say({ language: "it-IT", voice: "Google.it-IT-Neural2-A" }, message);
+      // Log ogni scambio su Log_Chat (non bloccante)
+      logMessage({
+        messageId:      `${callSid}-${Date.now()}`,
+        telefono:       req.body.From || "unknown",
+        testoMessaggio: speechResult,
+        rispostaInviata: message,
+        tipoMessaggio:  "chiamata_vocale",
+        sttStatus:      confidence >= 0.3 ? "ok" : "bassa_confidenza",
+        aiParseStatus:  extractedData ? "dati_estratti" : "nessun_dato",
+        timestamp:      new Date().toISOString(),
+      }).catch(() => {});
+
+      await ttsPlay(twiml, message);
     }
 
     // Controlla se la chiamata si sta concludendo
@@ -113,10 +137,7 @@ router.post("/gather", async (req, res) => {
 
   } catch (error) {
     console.error("Errore gather:", error.message);
-    twiml.say(
-      { language: "it-IT", voice: "Google.it-IT-Neural2-A" },
-      "Si è verificato un problema. La ricontatteremo al più presto."
-    );
+    await ttsPlay(twiml, "Si è verificato un problema. La ricontatteremo al più presto.");
     twiml.hangup();
   }
 
@@ -134,19 +155,13 @@ router.post("/no-input", async (req, res) => {
     session.noInputCount = noInputCount;
 
     if (noInputCount >= 2) {
-      twiml.say(
-        { language: "it-IT", voice: "Google.it-IT-Neural2-A" },
-        "Non ricevo risposta. La ringrazio e arrivederci."
-      );
+      await ttsPlay(twiml, "Non ricevo risposta. La ringrazio e arrivederci.");
       twiml.hangup();
       return res.type("text/xml").send(twiml.toString());
     }
   }
 
-  twiml.say(
-    { language: "it-IT", voice: "Google.it-IT-Neural2-A" },
-    "C'è ancora qualcuno? Come posso aiutarla?"
-  );
+  await ttsPlay(twiml, "C'è ancora qualcuno? Come posso aiutarla?");
   twiml.gather({
     input: "speech",
     action: `${process.env.BASE_URL}/twilio/gather`,

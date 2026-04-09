@@ -1,31 +1,20 @@
 // services/airtable.js
 // Usa la REST API di Airtable direttamente (senza SDK).
-// Tabella ID: tblu8KGxn6dfNBymT (nuova tabella leads pulita)
+// Info_Requests : tblGGr8aL3sT02YCF
+// Log_Chat      : tbleD1HKPfI4wCBOg
 
-async function saveLead(data) {
-  const apiKey = (process.env.AIRTABLE_API_KEY || "").replace(/[\r\n\s]/g, "");
-  const baseId  = (process.env.AIRTABLE_BASE_ID  || "").replace(/[\r\n\s]/g, "");
-  const tableId = "tblu8KGxn6dfNBymT";
+const TABLE_LEADS = "tblGGr8aL3sT02YCF"; // Info_Requests
+const TABLE_LOG   = "tbleD1HKPfI4wCBOg";  // Log_Chat
 
-  console.log(`📤 Airtable → Base: ${baseId} | Key: ${apiKey.substring(0, 10)}...`);
-
-  const fields = {
-    nome:        data.nome        || "",
-    cognome:     data.cognome     || "",
-    telefono:    data.telefono    || "",
-    email:       data.email       || "",
-    indirizzo:   data.indirizzo   || "",
-    citta:       data.città       || "",
-    cap:         data.cap         || "",
-    descrizione_richiesta: data.problema || "",
-    chat_id:               data.chatid  || "",
-    fonte:                 "Chiamata vocale",
-    stato:                 "Nuovo",
+function getAirtableConfig() {
+  return {
+    apiKey: (process.env.AIRTABLE_API_KEY || "").replace(/[\r\n\s]/g, ""),
+    baseId: (process.env.AIRTABLE_BASE_ID  || "").replace(/[\r\n\s]/g, ""),
   };
+}
 
-  if (data.servizio && ["Espurgo", "Relining", "Videoispezione", "Montaggio amex", "Non classificato"].includes(data.servizio)) {
-    fields.servizio_richiesto = data.servizio;
-  }
+async function airtablePost(tableId, fields) {
+  const { apiKey, baseId } = getAirtableConfig();
 
   const response = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`, {
     method: "POST",
@@ -41,9 +30,64 @@ async function saveLead(data) {
     throw new Error(`Airtable ${response.status}: ${err}`);
   }
 
-  const result = await response.json();
+  return response.json();
+}
+
+// ─── SALVA LEAD su Info_Requests ─────────────────────────────────────────────
+async function saveLead(data) {
+  const { apiKey, baseId } = getAirtableConfig();
+  console.log(`📤 Airtable → Base: ${baseId} | Key: ${apiKey.substring(0, 10)}...`);
+
+  const SERVIZI_VALIDI = ["Espurgo", "Relining", "Videoispezione", "Montaggio amex", "Non classificato"];
+
+  const fields = {
+    Nome:      data.nome      || "",
+    Cognome:   data.cognome   || "",
+    Telefono:  data.telefono  || "",
+    Email:     data.email     || "",
+    Indirizzo: data.indirizzo || "",
+    Città:     data.città     || "",
+    CAP:       data.cap       || "",
+    Problema:  data.problema  || "",
+    ChatId:    data.chatid    || "",
+    Source:    "Chiamata Vocale",
+    Canale:    "Chiamata Vocale",
+    Stato:     "Nuovo",
+  };
+
+  if (data.servizio && SERVIZI_VALIDI.includes(data.servizio)) {
+    fields.Servizio = data.servizio;
+  }
+
+  const result = await airtablePost(TABLE_LEADS, fields);
   console.log(`📋 Lead salvato su Airtable: ${result.id}`);
   return result.id;
 }
 
-module.exports = { saveLead };
+// ─── LOGGA MESSAGGIO su Log_Chat ─────────────────────────────────────────────
+async function logMessage(data) {
+  // data: { messageId, telefono, testoMessaggio, rispostaInviata,
+  //         tipoMessaggio, sttStatus, aiParseStatus, timestamp }
+  const fields = {
+    Message_ID:          data.messageId         || "",
+    Telefono:            data.telefono           || "",
+    Testo_Messaggio:     data.testoMessaggio     || "",
+    Risposta_Inviata:    data.rispostaInviata    || "",
+    Tipo_Messaggio:      data.tipoMessaggio      || "chiamata_vocale",
+    Canale:              "Chiamata Vocale",
+    STT_Status:          data.sttStatus          || "ok",
+    AI_Parse_Status:     data.aiParseStatus      || "nessun_dato",
+    Timestamp_Messaggio: data.timestamp          || new Date().toISOString(),
+  };
+
+  try {
+    const result = await airtablePost(TABLE_LOG, fields);
+    console.log(`📝 Log_Chat salvato: ${result.id}`);
+    return result.id;
+  } catch (err) {
+    // Il log non deve bloccare la chiamata
+    console.error("⚠️ Errore Log_Chat:", err.message);
+  }
+}
+
+module.exports = { saveLead, logMessage };
