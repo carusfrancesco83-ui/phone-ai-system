@@ -91,15 +91,36 @@ router.post("/webhook", async (req, res) => {
     const call = message.call || {};
     const callId = call.id || "";
     const phoneNumber = call.customer?.number || "";
-    const transcript = message.transcript || "";
+    const transcript = message.transcript || message.artifact?.transcript || "";
     const summary = message.summary || message.analysis?.summary || "";
     const analysis = message.analysis || {};
-    const structured = analysis.structuredData || {};
+
+    // VAPI mette i risultati degli Structured Outputs in artifact.structuredOutputs.
+    // Il formato è un oggetto indicizzato per UUID dell'output:
+    //   { "uuid-1": { "name": "nome", "result": "Francesco" }, ... }
+    // Lo "appiattiamo" in un dict { nome: "Francesco", cognome: "Caruso", ... }
+    // così il resto del codice può usarlo come prima.
+    const artifact = message.artifact || {};
+    const rawStructuredOutputs = artifact.structuredOutputs || {};
+    const structured = {};
+    if (rawStructuredOutputs && typeof rawStructuredOutputs === "object") {
+      for (const obj of Object.values(rawStructuredOutputs)) {
+        if (obj && typeof obj === "object" && obj.name) {
+          structured[obj.name] = obj.result ?? "";
+        }
+      }
+    }
+
+    // Fallback per compatibilità con vecchio formato analysis.structuredData
+    // (su VAPI legacy o se in futuro tornano a quel campo).
+    if (Object.keys(structured).length === 0 && analysis.structuredData) {
+      Object.assign(structured, analysis.structuredData);
+    }
 
     console.log(
       `📞 VAPI end-of-call: ${callId} | ${phoneNumber} | ${
         message.endedReason || "no reason"
-      }`
+      } | structuredKeys=${Object.keys(structured).join(",") || "EMPTY"}`
     );
 
     // Normalizza il valore servizio in formato accettato da airtable.js
