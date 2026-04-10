@@ -48,17 +48,26 @@ function normalizeServizio(s) {
 
 // ─── POST /vapi/webhook ───────────────────────────────────────────────────────
 // VAPI chiama questo endpoint per ogni evento del ciclo di vita della chiamata.
-// Filtriamo solo "end-of-call-report" e ignoriamo gli altri rispondendo comunque 200.
+// In versione DEBUG: loggo TUTTO quello che arriva, in modo da poter capire
+// dai log di Railway cosa VAPI sta effettivamente mandando.
 router.post("/webhook", async (req, res) => {
   // Verifica del segreto condiviso (opzionale ma consigliato).
   // Lascia VAPI_WEBHOOK_SECRET vuoto nel .env per disabilitare.
   const expectedSecret = process.env.VAPI_WEBHOOK_SECRET || "";
-  if (expectedSecret) {
-    const got = req.get("x-vapi-secret") || req.get("X-Vapi-Secret") || "";
-    if (got !== expectedSecret) {
-      console.warn("⚠️ VAPI webhook: secret mismatch");
-      return res.status(401).json({ ok: false, error: "unauthorized" });
-    }
+  const got = req.get("x-vapi-secret") || req.get("X-Vapi-Secret") || "";
+  const messageType = req.body?.message?.type || req.body?.type || "unknown";
+  const callId = req.body?.message?.call?.id || req.body?.call?.id || "";
+
+  // Log riassuntivo di OGNI richiesta che arriva a /vapi/webhook
+  console.log(
+    `🔔 VAPI webhook IN | type=${messageType} | callId=${callId.substring(0, 12)} | secretSet=${!!expectedSecret} | secretGot=${got ? "yes" : "no"} | secretMatch=${expectedSecret ? got === expectedSecret : "n/a"} | bodyKeys=${Object.keys(req.body || {}).join(",")}`
+  );
+
+  if (expectedSecret && got !== expectedSecret) {
+    console.warn(
+      `⚠️ VAPI webhook: secret mismatch (expected len=${expectedSecret.length}, got len=${got.length})`
+    );
+    return res.status(401).json({ ok: false, error: "unauthorized" });
   }
 
   // VAPI annida il payload sotto "message".
@@ -66,11 +75,17 @@ router.post("/webhook", async (req, res) => {
   const type = message?.type || "unknown";
 
   // Ack veloce per gli eventi diversi da end-of-call-report
-  // (status-update, transcript, function-call, hang, ecc.)
+  // (status-update, speech-update, conversation-update, transcript, function-call, hang, ecc.)
   if (type !== "end-of-call-report") {
     console.log(`📨 VAPI webhook ignored: ${type}`);
     return res.status(200).json({ ignored: true, type });
   }
+
+  // È un end-of-call-report — logghiamo i pezzi importanti del payload prima
+  // di procedere al salvataggio, così se qualcosa va storto sappiamo cosa è arrivato.
+  console.log(
+    `📞 VAPI end-of-call-report ricevuto | callId=${callId} | hasAnalysis=${!!message.analysis} | hasStructured=${!!message.analysis?.structuredData} | structuredKeys=${Object.keys(message.analysis?.structuredData || {}).join(",")} | transcriptLen=${(message.transcript || "").length}`
+  );
 
   try {
     const call = message.call || {};
