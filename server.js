@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const twilioRoutes = require("./twilio");
+const vapiRoutes = require("./vapi");
 const { sendWhatsAppNotifica } = require("./whatsapp");
 const audioCache = require("./audioCache");
 
@@ -15,10 +16,11 @@ const PORT = process.env.PORT || 3000;
 // ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "2mb" })); // VAPI può inviare transcript lunghi
 
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 app.use("/twilio", twilioRoutes);
+app.use("/vapi", vapiRoutes);
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));

@@ -19,6 +19,8 @@ const SERVIZIO_MAP = {
   "Relining":         "RELINING",
   "Videoispezione":   "VIDEOISPEZIONE",
   "Montaggio amex":   "MONTAGGIO_AMEX",
+  "Pulizia cisterne": "PULIZIA_CISTERNE",
+  "Mappatura reti":   "MAPPATURA_RETI",
   "Non classificato": "DA_DEFINIRE",
 };
 
