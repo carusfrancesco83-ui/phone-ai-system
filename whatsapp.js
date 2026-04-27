@@ -4,25 +4,21 @@
 
 // ============================================================
 // MAPPATURA SERVIZIO → VARIABILE ENV DEL CHAT ID TELEGRAM
+// Gruppi:
+//   -5226226627  Pulizia e Spurgo (ESPURGO, PULIZIA_CISTERNE, MONTAGGIO_AMEX)
+//   -5195212733  Videoispezione
+//   -5148155974  Relining Tubazioni
+//   -5184558703  Mappatura delle Reti
+//   -5195790572  Altro / Generale (fallback)
 // ============================================================
 const CHAT_ID_MAP = {
-  ESPURGO:        process.env.TELEGRAM_CHAT_ESPURGO,
-  RELINING:       process.env.TELEGRAM_CHAT_RELINING,
-  VIDEOISPEZIONE: process.env.TELEGRAM_CHAT_VIDEOISPEZIONE,
-  MONTAGGIO_AMEX: process.env.TELEGRAM_CHAT_MONTAGGIO_AMEX,
-  DA_DEFINIRE:    process.env.TELEGRAM_CHAT_DA_DEFINIRE,
-};
-
-// ============================================================
-// MAPPATURA SERVIZIO → BOT TOKEN (opzionale per bot separati)
-// Se non configurato, usa TELEGRAM_BOT_TOKEN come fallback
-// ============================================================
-const BOT_TOKEN_MAP = {
-  ESPURGO:        process.env.TELEGRAM_BOT_TOKEN_ESPURGO,
-  RELINING:       process.env.TELEGRAM_BOT_TOKEN_RELINING,
-  VIDEOISPEZIONE: process.env.TELEGRAM_BOT_TOKEN_VIDEOISPEZIONE,
-  MONTAGGIO_AMEX: process.env.TELEGRAM_BOT_TOKEN_MONTAGGIO_AMEX,
-  DA_DEFINIRE:    process.env.TELEGRAM_BOT_TOKEN_DA_DEFINIRE,
+  ESPURGO:          process.env.TELEGRAM_CHAT_ESPURGO,
+  PULIZIA_CISTERNE: process.env.TELEGRAM_CHAT_PULIZIA_CISTERNE,
+  MONTAGGIO_AMEX:   process.env.TELEGRAM_CHAT_MONTAGGIO_AMEX,
+  RELINING:         process.env.TELEGRAM_CHAT_RELINING,
+  VIDEOISPEZIONE:   process.env.TELEGRAM_CHAT_VIDEOISPEZIONE,
+  MAPPATURA_RETI:   process.env.TELEGRAM_CHAT_MAPPATURA_RETI,
+  DA_DEFINIRE:      process.env.TELEGRAM_CHAT_DA_DEFINIRE,
 };
 
 async function sendTelegramMessage(token, chatId, testo, parseMode) {
@@ -46,8 +42,8 @@ async function sendWhatsAppNotifica(leadData) {
   const nomeCompleto = [nome, cognome].filter(Boolean).join(" ") || "N/D";
 
   // ── Notifica specifica per servizio ──────────────────────────────────────────
-  const token  = (BOT_TOKEN_MAP[servizio] || process.env.TELEGRAM_BOT_TOKEN || "").trim();
-  const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE || process.env.TELEGRAM_CHAT_ID;
+  const token  = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatId = CHAT_ID_MAP[servizio] || process.env.TELEGRAM_CHAT_DA_DEFINIRE;
 
   if (!token) {
     console.warn("⚠️ TELEGRAM_BOT_TOKEN non configurato");
@@ -66,9 +62,9 @@ async function sendWhatsAppNotifica(leadData) {
     if (ok) console.log(`📲 Telegram inviato a ${servizio} (chat: ${chatId})`);
   }
 
-  // ── Notifica generale (tutti i lead, solo dati anagrafici) ───────────────────
-  const tokenAll  = (process.env.TELEGRAM_BOT_TOKEN_ALL || "").trim();
-  const chatIdAll = process.env.TELEGRAM_CHAT_ALL || "";
+  // ── Notifica generale (tutti i lead) → gruppo GENERALE (-5195790572) ─────────
+  const tokenAll  = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const chatIdAll = process.env.TELEGRAM_CHAT_GENERALE || "";
 
   if (tokenAll && chatIdAll) {
     const tel = (telefono || "").replace(/\D/g, "");
