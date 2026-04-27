@@ -6,7 +6,7 @@ const TABLE_LEADS = "tblGGr8aL3sT02YCF";
 const TABLE_LOG   = "tbleD1HKPfI4wCBOg";
 
 // ─── Valori singleSelect verificati via MCP ───────────────────────────────────
-// Info_Requests.Servizio : ESPURGO | RELINING | VIDEOISPEZIONE | MONTAGGIO_AMEX | DA_DEFINIRE | PULIZIA_CISTERNE | MAPPATURA_RETI
+// Info_Requests.Servizio : PULIZIA E SPURGO | VIDEOISPEZIONE | ANALISI DEI DATI | MAPPATURA DELLE RETI | RELINING TUBAZIONI | RIPRISTINO MANUFATTI | IMPERMEABILIZZAZIONE | PROVE DI TENUTA | ALTRO
 // Info_Requests.Canale   : WhatsApp | Email | Telefono | Web | Altro | Telegram
 // Info_Requests.Stato    : Nuovo | In lavorazione | Completato | Non qualificato
 // Info_Requests.Stage    : Lead | Contattato | Preventivo | Chiuso
@@ -15,13 +15,13 @@ const TABLE_LOG   = "tbleD1HKPfI4wCBOg";
 // Log_Chat.AI_Parse_Status: ok | failed
 
 const SERVIZIO_MAP = {
-  "Espurgo":          "ESPURGO",
-  "Relining":         "RELINING",
+  "Espurgo":          "PULIZIA E SPURGO",
+  "Relining":         "RELINING TUBAZIONI",
   "Videoispezione":   "VIDEOISPEZIONE",
-  "Montaggio amex":   "MONTAGGIO_AMEX",
-  "Pulizia cisterne": "PULIZIA_CISTERNE",
-  "Mappatura reti":   "MAPPATURA_RETI",
-  "Non classificato": "DA_DEFINIRE",
+  "Montaggio amex":   "RELINING TUBAZIONI",
+  "Pulizia cisterne": "PULIZIA E SPURGO",
+  "Mappatura reti":   "MAPPATURA DELLE RETI",
+  "Non classificato": "ALTRO",
 };
 
 function getAirtableConfig() {
@@ -71,6 +71,7 @@ async function saveLead(data) {
     Stage:       "Lead",
     Provenienza: data.source      || "",
     note_interne: data.noteInterne || "",
+    Data:        new Date().toISOString(),
   };
 
   const servizioAirtable = SERVIZIO_MAP[data.servizio];
