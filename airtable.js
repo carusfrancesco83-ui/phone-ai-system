@@ -15,13 +15,17 @@ const TABLE_LOG   = "tbleD1HKPfI4wCBOg";
 // Log_Chat.AI_Parse_Status: ok | failed
 
 const SERVIZIO_MAP = {
-  "Espurgo":          "PULIZIA E SPURGO",
-  "Relining":         "RELINING TUBAZIONI",
-  "Videoispezione":   "VIDEOISPEZIONE",
-  "Montaggio amex":   "RELINING TUBAZIONI",
-  "Pulizia cisterne": "PULIZIA E SPURGO",
-  "Mappatura reti":   "MAPPATURA DELLE RETI",
-  "Non classificato": "ALTRO",
+  "Espurgo":              "PULIZIA E SPURGO",
+  "Relining":             "RELINING TUBAZIONI",
+  "Videoispezione":       "VIDEOISPEZIONE",
+  "Montaggio amex":       "RELINING TUBAZIONI",
+  "Pulizia cisterne":     "PULIZIA E SPURGO",
+  "Mappatura reti":       "MAPPATURA DELLE RETI",
+  "Analisi dei dati":     "ANALISI DEI DATI",
+  "Ripristino manufatti": "RIPRISTINO MANUFATTI",
+  "Impermeabilizzazione": "IMPERMEABILIZZAZIONE",
+  "Prove di tenuta":      "PROVE DI TENUTA",
+  "Non classificato":     "ALTRO",
 };
 
 function getAirtableConfig() {

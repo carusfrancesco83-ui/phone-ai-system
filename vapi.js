@@ -24,21 +24,29 @@ const { sendWhatsAppNotifica } = require("./whatsapp");
 // airtable.js, così saveLead può mappare correttamente all'enum di Airtable.
 const SERVIZIO_NORMALIZE = {
   // valori "puliti" in italiano (passa-attraverso)
-  "Espurgo":          "Espurgo",
-  "Relining":         "Relining",
-  "Videoispezione":   "Videoispezione",
-  "Montaggio amex":   "Montaggio amex",
-  "Pulizia cisterne": "Pulizia cisterne",
-  "Mappatura reti":   "Mappatura reti",
-  "Non classificato": "Non classificato",
+  "Espurgo":              "Espurgo",
+  "Relining":             "Relining",
+  "Videoispezione":       "Videoispezione",
+  "Montaggio amex":       "Montaggio amex",
+  "Pulizia cisterne":     "Pulizia cisterne",
+  "Mappatura reti":       "Mappatura reti",
+  "Analisi dei dati":     "Analisi dei dati",
+  "Ripristino manufatti": "Ripristino manufatti",
+  "Impermeabilizzazione": "Impermeabilizzazione",
+  "Prove di tenuta":      "Prove di tenuta",
+  "Non classificato":     "Non classificato",
   // alias UPPER (per retrocompatibilità con structured outputs in maiuscolo)
-  "ESPURGO":          "Espurgo",
-  "RELINING":         "Relining",
-  "VIDEOISPEZIONE":   "Videoispezione",
-  "MONTAGGIO_AMEX":   "Montaggio amex",
-  "PULIZIA_CISTERNE": "Pulizia cisterne",
-  "MAPPATURA_RETI":   "Mappatura reti",
-  "DA_DEFINIRE":      "Non classificato",
+  "ESPURGO":              "Espurgo",
+  "RELINING":             "Relining",
+  "VIDEOISPEZIONE":       "Videoispezione",
+  "MONTAGGIO_AMEX":       "Montaggio amex",
+  "PULIZIA_CISTERNE":     "Pulizia cisterne",
+  "MAPPATURA_RETI":       "Mappatura reti",
+  "ANALISI_DEI_DATI":     "Analisi dei dati",
+  "RIPRISTINO_MANUFATTI": "Ripristino manufatti",
+  "IMPERMEABILIZZAZIONE": "Impermeabilizzazione",
+  "PROVE_DI_TENUTA":      "Prove di tenuta",
+  "DA_DEFINIRE":          "Non classificato",
 };
 
 function normalizeServizio(s) {
@@ -162,13 +170,17 @@ router.post("/webhook", async (req, res) => {
     // routing dei chat ID, mentre saveLead lavora in italiano. Mappiamo qui.
     const servizioUpper = (
       {
-        "Espurgo":          "ESPURGO",
-        "Relining":         "RELINING",
-        "Videoispezione":   "VIDEOISPEZIONE",
-        "Montaggio amex":   "MONTAGGIO_AMEX",
-        "Pulizia cisterne": "PULIZIA_CISTERNE",
-        "Mappatura reti":   "MAPPATURA_RETI",
-        "Non classificato": "DA_DEFINIRE",
+        "Espurgo":              "ESPURGO",
+        "Relining":             "RELINING",
+        "Videoispezione":       "VIDEOISPEZIONE",
+        "Montaggio amex":       "MONTAGGIO_AMEX",
+        "Pulizia cisterne":     "PULIZIA_CISTERNE",
+        "Mappatura reti":       "MAPPATURA_RETI",
+        "Analisi dei dati":     "ANALISI_DEI_DATI",
+        "Ripristino manufatti": "RIPRISTINO_MANUFATTI",
+        "Impermeabilizzazione": "IMPERMEABILIZZAZIONE",
+        "Prove di tenuta":      "PROVE_DI_TENUTA",
+        "Non classificato":     "DA_DEFINIRE",
       }[servizio] || "DA_DEFINIRE"
     );
 
