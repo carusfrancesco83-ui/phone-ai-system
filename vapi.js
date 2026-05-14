@@ -107,7 +107,7 @@ router.post("/webhook", async (req, res) => {
   // assistantId fisso impostato, altrimenti VAPI non invia questo evento.
   if (type === "assistant-request") {
     const greeting = getTimeBasedGreeting();
-    const firstMessage = `Ecosan Italia, ${greeting}, mi dica.`;
+    const firstMessage = `Ecosan, ${greeting}, mi dica.`;
     console.log(`🌅 VAPI assistant-request | greeting=${greeting} | firstMessage="${firstMessage}"`);
     return res.status(200).json({
       assistantId: process.env.VAPI_ASSISTANT_ID,
