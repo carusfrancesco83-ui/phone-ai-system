@@ -54,6 +54,24 @@ function normalizeServizio(s) {
   return SERVIZIO_NORMALIZE[s.trim()] || "Non classificato";
 }
 
+// Saluto in base all'ora italiana corrente (fuso Europe/Rome).
+//   06:00-13:59 → "buongiorno"
+//   14:00-17:59 → "buon pomeriggio"
+//   18:00-05:59 → "buonasera"
+function getTimeBasedGreeting() {
+  const hour = parseInt(
+    new Date().toLocaleString("en-US", {
+      timeZone: "Europe/Rome",
+      hour: "2-digit",
+      hour12: false,
+    }),
+    10
+  );
+  if (hour >= 6 && hour < 14) return "buongiorno";
+  if (hour >= 14 && hour < 18) return "buon pomeriggio";
+  return "buonasera";
+}
+
 // ─── POST /vapi/webhook ───────────────────────────────────────────────────────
 // VAPI chiama questo endpoint per ogni evento del ciclo di vita della chiamata.
 // In versione DEBUG: loggo TUTTO quello che arriva, in modo da poter capire
@@ -81,6 +99,21 @@ router.post("/webhook", async (req, res) => {
   // VAPI annida il payload sotto "message".
   const message = req.body?.message || req.body || {};
   const type = message?.type || "unknown";
+
+  // assistant-request: VAPI lo manda PRIMA dell'inizio chiamata per chiedere
+  // quale assistant usare. Rispondiamo con l'assistant fisso + override del
+  // saluto iniziale in base all'ora italiana corrente (buongiorno / buon
+  // pomeriggio / buonasera). Richiede che il phone-number su VAPI NON abbia
+  // assistantId fisso impostato, altrimenti VAPI non invia questo evento.
+  if (type === "assistant-request") {
+    const greeting = getTimeBasedGreeting();
+    const firstMessage = `Ecosan Italia, ${greeting}, mi dica.`;
+    console.log(`🌅 VAPI assistant-request | greeting=${greeting} | firstMessage="${firstMessage}"`);
+    return res.status(200).json({
+      assistantId: process.env.VAPI_ASSISTANT_ID,
+      assistantOverrides: { firstMessage },
+    });
+  }
 
   // Ack veloce per gli eventi diversi da end-of-call-report
   // (status-update, speech-update, conversation-update, transcript, function-call, hang, ecc.)
