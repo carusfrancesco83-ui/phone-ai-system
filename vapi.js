@@ -191,6 +191,7 @@ router.post("/webhook", async (req, res) => {
     const leadId = await saveLead({
       nome:        structured.nome      || "",
       cognome:     structured.cognome   || "",
+      azienda:     structured.azienda   || "",
       telefono:    telefonoFisso,
       cellulare:   cellulare,
       email:       structured.email     || "",

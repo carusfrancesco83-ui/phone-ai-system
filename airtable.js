@@ -63,6 +63,7 @@ async function saveLead(data) {
   const fields = {
     Nome:        data.nome       || "",
     Cognome:     data.cognome    || "",
+    Azienda:     data.azienda    || "",
     Telefono:    data.telefono   || "",
     Cellulare:   data.cellulare  || "",
     Email:       data.email      || "",
