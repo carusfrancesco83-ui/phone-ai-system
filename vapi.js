@@ -176,16 +176,23 @@ router.post("/webhook", async (req, res) => {
     // Normalizza il valore servizio in formato accettato da airtable.js
     const servizio = normalizeServizio(structured.servizio);
 
+    // Distribuzione caller ID / cellulare dettato nei due campi Airtable:
+    //   - Se caller ID è un mobile italiano (+39 3xx) → Telefono vuoto, Cellulare = caller ID
+    //   - Se caller ID è fisso / estero → Telefono = caller ID, Cellulare = quello
+    //     dettato dal cliente nel campo structured.cellulare (può essere vuoto
+    //     se il cliente da fisso ha rifiutato di darlo).
+    const isMobileCallerId = /^\+393\d/.test(phoneNumber);
+    const telefonoFisso = isMobileCallerId ? "" : phoneNumber;
+    const cellulare = isMobileCallerId ? phoneNumber : (structured.cellulare || "");
+
     // Salva il lead riusando la saveLead esistente (stessa firma del flusso Twilio).
     // noteInterne riceve il riassunto AI di VAPI se disponibile, altrimenti la
     // trascrizione completa.
     const leadId = await saveLead({
       nome:        structured.nome      || "",
       cognome:     structured.cognome   || "",
-      // Se l'AI ha catturato un telefono diverso dal caller ID (tipicamente
-      // un cellulare richiesto perché il cliente ha chiamato da fisso), quello
-      // dato dal cliente prevale: è più utile per il team coordinare via WhatsApp.
-      telefono:    structured.telefono || phoneNumber || "",
+      telefono:    telefonoFisso,
+      cellulare:   cellulare,
       email:       structured.email     || "",
       indirizzo:   structured.indirizzo || "",
       "città":     structured["città"] || structured.citta || "",
@@ -236,9 +243,9 @@ router.post("/webhook", async (req, res) => {
 
     sendWhatsAppNotifica({
       nome:     nomeCompleto || "",
-      // Stesso ordine di priorità della saveLead: cellulare dato dal cliente
-      // batte il caller ID del fisso, così il team contatta il numero giusto.
-      telefono: structured.telefono || phoneNumber || "",
+      // Sulla notifica Telegram al team mostra il cellulare se disponibile
+      // (canale primario per WhatsApp), altrimenti il fisso.
+      telefono: cellulare || telefonoFisso || "",
       email:    structured.email    || "",
       problema: structured.problema || "",
       servizio: servizioUpper,

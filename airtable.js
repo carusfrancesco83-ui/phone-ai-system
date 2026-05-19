@@ -64,6 +64,7 @@ async function saveLead(data) {
     Nome:        data.nome       || "",
     Cognome:     data.cognome    || "",
     Telefono:    data.telefono   || "",
+    Cellulare:   data.cellulare  || "",
     Email:       data.email      || "",
     Indirizzo:   data.indirizzo  || "",
     Città:       data.città      || "",
