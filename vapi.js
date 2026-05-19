@@ -108,10 +108,19 @@ router.post("/webhook", async (req, res) => {
   if (type === "assistant-request") {
     const greeting = getTimeBasedGreeting();
     const firstMessage = `Ecosan, ${greeting}, mi dica.`;
-    console.log(`🌅 VAPI assistant-request | greeting=${greeting} | firstMessage="${firstMessage}"`);
+    // Determina se il chiamante sta usando un fisso o un mobile italiano.
+    // Mobile IT = +39 seguito da 3xxxxxxxxx. Tutto il resto (fisso italiano
+    // 0xx, numeri esteri, numero privato/blocked) viene trattato come "FISSO"
+    // così l'assistant chiede un cellulare per coordinare via WhatsApp.
+    const callerNumber = message?.call?.customer?.number || "";
+    const callerType = /^\+393\d/.test(callerNumber) ? "MOBILE" : "FISSO";
+    console.log(`🌅 VAPI assistant-request | greeting=${greeting} | callerNumber=${callerNumber} | callerType=${callerType}`);
     return res.status(200).json({
       assistantId: process.env.VAPI_ASSISTANT_ID,
-      assistantOverrides: { firstMessage },
+      assistantOverrides: {
+        firstMessage,
+        variableValues: { callerType },
+      },
     });
   }
 
@@ -173,7 +182,10 @@ router.post("/webhook", async (req, res) => {
     const leadId = await saveLead({
       nome:        structured.nome      || "",
       cognome:     structured.cognome   || "",
-      telefono:    phoneNumber || structured.telefono || "",
+      // Se l'AI ha catturato un telefono diverso dal caller ID (tipicamente
+      // un cellulare richiesto perché il cliente ha chiamato da fisso), quello
+      // dato dal cliente prevale: è più utile per il team coordinare via WhatsApp.
+      telefono:    structured.telefono || phoneNumber || "",
       email:       structured.email     || "",
       indirizzo:   structured.indirizzo || "",
       "città":     structured["città"] || structured.citta || "",
@@ -224,7 +236,9 @@ router.post("/webhook", async (req, res) => {
 
     sendWhatsAppNotifica({
       nome:     nomeCompleto || "",
-      telefono: phoneNumber || structured.telefono || "",
+      // Stesso ordine di priorità della saveLead: cellulare dato dal cliente
+      // batte il caller ID del fisso, così il team contatta il numero giusto.
+      telefono: structured.telefono || phoneNumber || "",
       email:    structured.email    || "",
       problema: structured.problema || "",
       servizio: servizioUpper,
