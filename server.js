@@ -218,6 +218,29 @@ app.get("/debug/vapi", async (req, res) => {
 
 // Debug Twilio CREDENZIALI: verifica che env vars siano popolate.
 // Non espone valori, solo presenza e prefissi.
+// Debug env vars per integrazione CRM + VAPI webhook secret.
+app.get("/debug/integration-env", (req, res) => {
+  const vapiSecret = process.env.VAPI_WEBHOOK_SECRET || "";
+  const crmUrl = process.env.CRM_WEBHOOK_URL || "";
+  const crmSecret = process.env.CRM_VOICE_BOT_SECRET || "";
+  res.json({
+    VAPI_WEBHOOK_SECRET: {
+      set: vapiSecret.length > 0,
+      length: vapiSecret.length,
+      note: "Se set, VAPI dashboard DEVE inviare lo stesso valore in x-vapi-secret header del webhook server URL",
+    },
+    CRM_WEBHOOK_URL: {
+      set: crmUrl.length > 0,
+      value: crmUrl,
+    },
+    CRM_VOICE_BOT_SECRET: {
+      set: crmSecret.length > 0,
+      length: crmSecret.length,
+      note: "Deve combaciare con env VOICE_BOT_WEBHOOK_SECRET del CRM",
+    },
+  });
+});
+
 app.get("/debug/twilio-creds", (req, res) => {
   const sid = process.env.TWILIO_ACCOUNT_SID || "";
   const token = process.env.TWILIO_AUTH_TOKEN || "";
