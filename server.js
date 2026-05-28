@@ -98,6 +98,24 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug VAPI: leggi il prompt completo di un assistant.
+// Usato per verificare cosa sta effettivamente usando VAPI quando l'utente
+// chiama, e confrontarlo con cosa si configura via dashboard.
+// Uso: GET /debug/vapi-assistant/:id
+app.get("/debug/vapi-assistant/:id", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  try {
+    const r = await fetch(`https://api.vapi.ai/assistant/${req.params.id}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    const body = await r.json();
+    res.status(r.status).json(body);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Fix VAPI: assegna assistantId a phone-number (PATCH).
 // Uso: GET /debug/vapi-assign?phoneId=...&assistantId=...
 app.get("/debug/vapi-assign", async (req, res) => {
