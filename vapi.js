@@ -14,7 +14,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { saveLead, logMessage } = require("./airtable");
+// 2026-05-28 — saveLead ora va al CRM Ecosan (mirror Airtable via outbox).
+// logMessage resta su Airtable per audit log Log_Chat (non critico).
+const { saveLead } = require("./crm");
+const { logMessage } = require("./airtable");
 const { sendWhatsAppNotifica } = require("./whatsapp");
 
 // Mappa di normalizzazione del campo "servizio".
