@@ -117,4 +117,32 @@ async function saveLead(data) {
   return leadId;
 }
 
-module.exports = { saveLead };
+// Ring buffer in-memory degli ultimi tentativi di saveLead (per /debug).
+const LAST_ATTEMPTS = [];
+function logAttempt(entry) {
+  LAST_ATTEMPTS.unshift({ at: new Date().toISOString(), ...entry });
+  while (LAST_ATTEMPTS.length > 10) LAST_ATTEMPTS.pop();
+}
+function getLastAttempts() { return LAST_ATTEMPTS; }
+
+// Wrap di saveLead per intercettare esito
+const _origSaveLead = saveLead;
+async function saveLeadTracked(data) {
+  const callId = data.chatid || "no-id";
+  try {
+    const leadId = await _origSaveLead(data);
+    logAttempt({ callId, ok: true, leadId, payloadKeys: Object.keys(data) });
+    return leadId;
+  } catch (err) {
+    logAttempt({
+      callId,
+      ok: false,
+      error: String(err?.message || err),
+      stack: String(err?.stack || "").substring(0, 1000),
+      payloadKeys: Object.keys(data),
+    });
+    throw err;
+  }
+}
+
+module.exports = { saveLead: saveLeadTracked, getLastAttempts };

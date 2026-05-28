@@ -43,6 +43,15 @@ app.use("/vapi/webhook", (req, res, next) => {
 app.get("/debug/vapi-webhook-log", (_req, res) => {
   res.json({ count: WEBHOOK_LOG.length, last: WEBHOOK_LOG });
 });
+// Debug: ultimi tentativi di salvataggio sul CRM (success/error)
+app.get("/debug/crm-attempts", (_req, res) => {
+  try {
+    const { getLastAttempts } = require("./crm");
+    res.json({ attempts: getLastAttempts() });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 app.use("/twilio", twilioRoutes);
