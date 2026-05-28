@@ -98,6 +98,23 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug VAPI: dettaglio di una specifica chiamata (transcript, dati strutturati,
+// messages, ecc.). Permette di capire se VAPI ha estratto i dati correttamente
+// e cosa avrebbe dovuto inviare al webhook.
+app.get("/debug/vapi-call/:id", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  try {
+    const r = await fetch(`https://api.vapi.ai/call/${req.params.id}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    const body = await r.json();
+    res.status(r.status).json(body);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Debug VAPI: leggi il prompt completo di un assistant.
 // Usato per verificare cosa sta effettivamente usando VAPI quando l'utente
 // chiama, e confrontarlo con cosa si configura via dashboard.
