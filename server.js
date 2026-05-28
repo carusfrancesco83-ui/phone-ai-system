@@ -98,6 +98,39 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug VAPI: configurazione COMPLETA assistant (incluso analysisPlan/
+// structuredOutputs che determinano se VAPI estrae dati dalla conversazione).
+app.get("/debug/vapi-assistant-full/:id", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  try {
+    const r = await fetch(`https://api.vapi.ai/assistant/${req.params.id}`, {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    const a = await r.json();
+    // Ritorna SOLO le sezioni rilevanti per data extraction
+    res.json({
+      id: a.id,
+      name: a.name,
+      updatedAt: a.updatedAt,
+      // questi sono i tre posti dove VAPI può avere config di estrazione dati
+      analysisPlan: a.analysisPlan ?? null,
+      analysisSchema: a.analysisSchema ?? null,
+      summaryPrompt: a.summaryPrompt ?? null,
+      structuredDataPrompt: a.structuredDataPrompt ?? null,
+      structuredDataSchema: a.structuredDataSchema ?? null,
+      successEvaluationPrompt: a.successEvaluationPrompt ?? null,
+      successEvaluationRubric: a.successEvaluationRubric ?? null,
+      serverUrl: a.serverUrl ?? null,
+      server: a.server ?? null,
+      // raw config message del model (per controllare gli structured outputs annidati)
+      modelHasMessages: Array.isArray(a.model?.messages) && a.model.messages.length > 0,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Debug VAPI: dettaglio di una specifica chiamata (transcript, dati strutturati,
 // messages, ecc.). Permette di capire se VAPI ha estratto i dati correttamente
 // e cosa avrebbe dovuto inviare al webhook.
