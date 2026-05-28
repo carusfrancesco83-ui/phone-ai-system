@@ -98,6 +98,28 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Fix VAPI: assegna assistantId a phone-number (PATCH).
+// Uso: GET /debug/vapi-assign?phoneId=...&assistantId=...
+app.get("/debug/vapi-assign", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  const { phoneId, assistantId } = req.query;
+  if (!phoneId || !assistantId) {
+    return res.status(400).json({ error: "phoneId + assistantId required as query params" });
+  }
+  try {
+    const r = await fetch(`https://api.vapi.ai/phone-number/${phoneId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ assistantId }),
+    });
+    const body = await r.json();
+    res.status(r.status).json({ status: r.status, body });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Debug VAPI: verifica account, lista assistants, numeri configurati,
 // ultime chiamate (con errori). Tutti i dati sensibili oscurati.
 app.get("/debug/vapi", async (req, res) => {
