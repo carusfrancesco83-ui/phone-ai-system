@@ -51,7 +51,8 @@ async function saveLead(data) {
   const endpoint = `${url}/api/v1/webhooks/voice-bot/leads`;
 
   // Mapping bot → DTO CRM (VoiceBotLeadDto):
-  //   nome + cognome → callerName (concatenati)
+  //   nome           → callerName       (solo nome di battesimo)
+  //   cognome        → callerCognome    (separato, dal 2026-05-28)
   //   telefono       → callerPhone
   //   email          → callerEmail
   //   indirizzo      → callerAddress
@@ -62,7 +63,13 @@ async function saveLead(data) {
   //   problema       → problem (con noteInterne preprended se presenti)
   //   transcript     → transcript
   //   chatid         → callId + header x-event-id (idempotency)
-  const callerName = [data.nome, data.cognome].filter(Boolean).join(" ").trim() || undefined;
+  //
+  // 2026-05-28 fix: prima concatenavamo nome+cognome in callerName e il CRM
+  // metteva tutto in lead.name lasciando cognome vuoto. Ora mandiamo i due
+  // campi separati. Fallback: se VAPI estrae solo `nome` con "Francesco Baldi",
+  // il backend ha logica di split per dedurre cognome se trailing match.
+  const callerName = (data.nome || "").trim() || undefined;
+  const callerCognome = (data.cognome || "").trim() || undefined;
   const problemaCombined = [data.noteInterne, data.problema].filter((s) => s && s.trim()).join("\n\n");
 
   // Fallback: se chiama da mobile, vapi.js mette il numero in `cellulare`
@@ -70,6 +77,7 @@ async function saveLead(data) {
   // quindi è essenziale che almeno uno dei due sia popolato.
   const body = {
     callerName,
+    callerCognome,
     callerPhone: data.telefono || data.cellulare || undefined,
     callerEmail: data.email || undefined,
     callerCity: data.città || undefined,
