@@ -18,6 +18,32 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: "2mb" })); // VAPI può inviare transcript lunghi
 
+// ─── DEBUG: ring buffer dei webhook VAPI ricevuti ─────────────────────────────
+// Registrato PRIMA del router /vapi così intercetta tutte le POST a /vapi/webhook
+// prima che il router le consumi.
+const WEBHOOK_LOG = [];
+const MAX_LOG = 20;
+app.use("/vapi/webhook", (req, res, next) => {
+  if (req.method === "POST") {
+    const t = req.body?.message?.type || req.body?.type || "unknown";
+    const cid = req.body?.message?.call?.id || req.body?.call?.id || "";
+    WEBHOOK_LOG.unshift({
+      receivedAt: new Date().toISOString(),
+      messageType: t,
+      callId: cid,
+      hasAnalysis: !!(req.body?.message?.analysis || req.body?.analysis),
+      hasStructuredData: !!(req.body?.message?.analysis?.structuredData || req.body?.analysis?.structuredData),
+      structuredKeys: Object.keys(req.body?.message?.analysis?.structuredData || req.body?.analysis?.structuredData || {}),
+      bodyKeys: Object.keys(req.body || {}),
+    });
+    while (WEBHOOK_LOG.length > MAX_LOG) WEBHOOK_LOG.pop();
+  }
+  next();
+});
+app.get("/debug/vapi-webhook-log", (_req, res) => {
+  res.json({ count: WEBHOOK_LOG.length, last: WEBHOOK_LOG });
+});
+
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 app.use("/twilio", twilioRoutes);
 app.use("/vapi", vapiRoutes);
@@ -96,31 +122,6 @@ app.get("/test-telegram", async (req, res) => {
   } catch (e) {
     res.json({ errore: e.message });
   }
-});
-
-// Debug: ultime POST ricevute su /vapi/webhook (in-memory ring buffer 20).
-// Riempito da middleware in vapi.js (vedi router.post("/webhook")).
-const WEBHOOK_LOG = [];
-const MAX_LOG = 20;
-app.use("/vapi/webhook", (req, res, next) => {
-  if (req.method === "POST") {
-    const t = req.body?.message?.type || req.body?.type || "unknown";
-    const cid = req.body?.message?.call?.id || req.body?.call?.id || "";
-    WEBHOOK_LOG.unshift({
-      receivedAt: new Date().toISOString(),
-      messageType: t,
-      callId: cid,
-      hasAnalysis: !!(req.body?.message?.analysis || req.body?.analysis),
-      hasStructuredData: !!(req.body?.message?.analysis?.structuredData || req.body?.analysis?.structuredData),
-      structuredKeys: Object.keys(req.body?.message?.analysis?.structuredData || req.body?.analysis?.structuredData || {}),
-      bodyKeys: Object.keys(req.body || {}),
-    });
-    while (WEBHOOK_LOG.length > MAX_LOG) WEBHOOK_LOG.pop();
-  }
-  next();
-});
-app.get("/debug/vapi-webhook-log", (_req, res) => {
-  res.json({ count: WEBHOOK_LOG.length, last: WEBHOOK_LOG });
 });
 
 // FIX: configura analysisPlan dell'assistant per estrarre dati strutturati
