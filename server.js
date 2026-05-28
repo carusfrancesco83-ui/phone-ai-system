@@ -98,6 +98,70 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug Twilio: lista numeri attivi + voice config (per diagnosticare
+// "squilla a vuoto"). Mostra solo info NON sensibili (no auth token).
+app.get("/debug/twilio", async (req, res) => {
+  try {
+    const twilio = require("twilio");
+    const sid = process.env.TWILIO_ACCOUNT_SID;
+    const token = process.env.TWILIO_AUTH_TOKEN;
+    if (!sid || !token) {
+      return res.status(500).json({
+        error: "TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN missing in env",
+      });
+    }
+    const client = twilio(sid, token);
+
+    // Lista numeri attivi sull'account
+    const numbers = await client.incomingPhoneNumbers.list({ limit: 50 });
+
+    const result = numbers.map((n) => ({
+      sid: n.sid,
+      phoneNumber: n.phoneNumber,
+      friendlyName: n.friendlyName,
+      voiceUrl: n.voiceUrl || "(empty — won't ring)",
+      voiceMethod: n.voiceMethod,
+      voiceFallbackUrl: n.voiceFallbackUrl || null,
+      voiceFallbackMethod: n.voiceFallbackMethod,
+      voiceApplicationSid: n.voiceApplicationSid || null,
+      statusCallback: n.statusCallback || null,
+      statusCallbackMethod: n.statusCallbackMethod,
+      capabilities: n.capabilities,
+      dateCreated: n.dateCreated,
+    }));
+
+    res.json({
+      accountSid: sid,
+      botExpectedUrl: `${process.env.BASE_URL || "https://phone-ai-system-production.up.railway.app"}/twilio/incoming`,
+      numbers: result,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message, code: e.code || null });
+  }
+});
+
+// Debug Twilio: ultime chiamate (per vedere status/error code)
+app.get("/debug/twilio-calls", async (req, res) => {
+  try {
+    const twilio = require("twilio");
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    const calls = await client.calls.list({ limit: 20 });
+    res.json(calls.map((c) => ({
+      sid: c.sid,
+      from: c.from,
+      to: c.to,
+      direction: c.direction,
+      status: c.status,
+      duration: c.duration,
+      startTime: c.startTime,
+      endTime: c.endTime,
+      // ⚠️ tipici codici errore: 11200 (HTTP retrieval failure), 13225 (invalid url), 32100 (account locked)
+    })));
+  } catch (e) {
+    res.status(500).json({ error: e.message, code: e.code || null });
+  }
+});
+
 // Debug Airtable: verifica token e lista tabelle disponibili
 app.get("/debug/airtable", async (req, res) => {
   const apiKey = (process.env.AIRTABLE_API_KEY || "").replace(/[\r\n\s]/g, "");
