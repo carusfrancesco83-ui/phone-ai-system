@@ -98,6 +98,25 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug Twilio CREDENZIALI: verifica che env vars siano popolate.
+// Non espone valori, solo presenza e prefissi.
+app.get("/debug/twilio-creds", (req, res) => {
+  const sid = process.env.TWILIO_ACCOUNT_SID || "";
+  const token = process.env.TWILIO_AUTH_TOKEN || "";
+  const phoneNumber = process.env.TWILIO_PHONE_NUMBER || "";
+  res.json({
+    accountSid_present: sid.length > 0,
+    accountSid_prefix: sid.substring(0, 12) + (sid.length > 12 ? "..." : ""),
+    accountSid_length: sid.length,
+    accountSid_format_ok: sid.startsWith("AC") && sid.length === 34,
+    authToken_present: token.length > 0,
+    authToken_length: token.length,
+    authToken_format_ok: token.length === 32,
+    phoneNumber: phoneNumber || "(empty)",
+    baseUrl: process.env.BASE_URL || "(empty)",
+  });
+});
+
 // Debug Twilio: lista numeri attivi + voice config (per diagnosticare
 // "squilla a vuoto"). Mostra solo info NON sensibili (no auth token).
 app.get("/debug/twilio", async (req, res) => {
