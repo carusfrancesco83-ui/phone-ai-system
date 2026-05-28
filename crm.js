@@ -65,9 +65,12 @@ async function saveLead(data) {
   const callerName = [data.nome, data.cognome].filter(Boolean).join(" ").trim() || undefined;
   const problemaCombined = [data.noteInterne, data.problema].filter((s) => s && s.trim()).join("\n\n");
 
+  // Fallback: se chiama da mobile, vapi.js mette il numero in `cellulare`
+  // e lascia `telefono` vuoto. Il CRM accetta callerPhone OR callerEmail
+  // quindi è essenziale che almeno uno dei due sia popolato.
   const body = {
     callerName,
-    callerPhone: data.telefono || undefined,
+    callerPhone: data.telefono || data.cellulare || undefined,
     callerEmail: data.email || undefined,
     callerCity: data.città || undefined,
     callerCap: data.cap || undefined,
