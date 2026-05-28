@@ -98,6 +98,31 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug: ultime POST ricevute su /vapi/webhook (in-memory ring buffer 20).
+// Riempito da middleware in vapi.js (vedi router.post("/webhook")).
+const WEBHOOK_LOG = [];
+const MAX_LOG = 20;
+app.use("/vapi/webhook", (req, res, next) => {
+  if (req.method === "POST") {
+    const t = req.body?.message?.type || req.body?.type || "unknown";
+    const cid = req.body?.message?.call?.id || req.body?.call?.id || "";
+    WEBHOOK_LOG.unshift({
+      receivedAt: new Date().toISOString(),
+      messageType: t,
+      callId: cid,
+      hasAnalysis: !!(req.body?.message?.analysis || req.body?.analysis),
+      hasStructuredData: !!(req.body?.message?.analysis?.structuredData || req.body?.analysis?.structuredData),
+      structuredKeys: Object.keys(req.body?.message?.analysis?.structuredData || req.body?.analysis?.structuredData || {}),
+      bodyKeys: Object.keys(req.body || {}),
+    });
+    while (WEBHOOK_LOG.length > MAX_LOG) WEBHOOK_LOG.pop();
+  }
+  next();
+});
+app.get("/debug/vapi-webhook-log", (_req, res) => {
+  res.json({ count: WEBHOOK_LOG.length, last: WEBHOOK_LOG });
+});
+
 // FIX: configura analysisPlan dell'assistant per estrarre dati strutturati
 // dalle conversazioni. Da chiamare UNA volta sola per assistant Ecosan.
 // Uso: GET /debug/vapi-configure-extraction?assistantId=...
