@@ -98,6 +98,45 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// Debug VAPI: verifica account, lista assistants, numeri configurati,
+// ultime chiamate (con errori). Tutti i dati sensibili oscurati.
+app.get("/debug/vapi", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  const headers = { Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+  try {
+    const [assistantsR, phonesR, callsR] = await Promise.all([
+      fetch("https://api.vapi.ai/assistant?limit=10", { headers }),
+      fetch("https://api.vapi.ai/phone-number?limit=10", { headers }),
+      fetch("https://api.vapi.ai/call?limit=10", { headers }),
+    ]);
+    const assistants = assistantsR.ok ? await assistantsR.json() : { error: `${assistantsR.status}` };
+    const phones = phonesR.ok ? await phonesR.json() : { error: `${phonesR.status}` };
+    const calls = callsR.ok ? await callsR.json() : { error: `${callsR.status}` };
+
+    res.json({
+      api_key_present: true,
+      api_key_prefix: key.substring(0, 8) + "...",
+      assistants: Array.isArray(assistants) ? assistants.map(a => ({
+        id: a.id, name: a.name, model: a.model?.model, voice: a.voice?.voiceId,
+        createdAt: a.createdAt, updatedAt: a.updatedAt,
+      })) : assistants,
+      phones: Array.isArray(phones) ? phones.map(p => ({
+        id: p.id, number: p.number, provider: p.provider, name: p.name,
+        assistantId: p.assistantId, createdAt: p.createdAt,
+        twilioAccountSid: p.twilioAccountSid?.substring(0, 12) + "...",
+      })) : phones,
+      recent_calls: Array.isArray(calls) ? calls.slice(0, 5).map(c => ({
+        id: c.id, type: c.type, status: c.status, endedReason: c.endedReason,
+        phoneNumber: c.phoneNumber?.number, assistantId: c.assistantId,
+        startedAt: c.startedAt, endedAt: c.endedAt,
+      })) : calls,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Debug Twilio CREDENZIALI: verifica che env vars siano popolate.
 // Non espone valori, solo presenza e prefissi.
 app.get("/debug/twilio-creds", (req, res) => {
