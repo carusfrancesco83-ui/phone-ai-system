@@ -116,6 +116,28 @@ app.get("/debug/vapi-assistant/:id", async (req, res) => {
   }
 });
 
+// Fix VAPI: RIMUOVI assistantId da phone-number (per ripristinare
+// il flusso assistant-request → bot Express che applica saluto
+// dinamico + callerType variabile).
+// Uso: GET /debug/vapi-detach?phoneId=...
+app.get("/debug/vapi-detach", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  const { phoneId } = req.query;
+  if (!phoneId) return res.status(400).json({ error: "phoneId required" });
+  try {
+    const r = await fetch(`https://api.vapi.ai/phone-number/${phoneId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ assistantId: null }),
+    });
+    const body = await r.json();
+    res.status(r.status).json({ status: r.status, body });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Fix VAPI: assegna assistantId a phone-number (PATCH).
 // Uso: GET /debug/vapi-assign?phoneId=...&assistantId=...
 app.get("/debug/vapi-assign", async (req, res) => {
