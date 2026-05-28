@@ -98,6 +98,103 @@ app.get("/test-telegram", async (req, res) => {
   }
 });
 
+// FIX: configura analysisPlan dell'assistant per estrarre dati strutturati
+// dalle conversazioni. Da chiamare UNA volta sola per assistant Ecosan.
+// Uso: GET /debug/vapi-configure-extraction?assistantId=...
+app.get("/debug/vapi-configure-extraction", async (req, res) => {
+  const key = process.env.VAPI_PRIVATE_KEY || "";
+  if (!key) return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
+  const { assistantId } = req.query;
+  if (!assistantId) return res.status(400).json({ error: "assistantId required" });
+
+  // Schema dei dati che vapi.js si aspetta nel webhook end-of-call-report.
+  // Campi mappati 1:1 con quello che il codice del bot legge da `structured.X`.
+  const analysisPlan = {
+    summaryPlan: {
+      enabled: true,
+      messages: [
+        {
+          role: "system",
+          content: "Riassumi la chiamata in 2-3 frasi in italiano. Includi: chi ha chiamato (nome), cosa serve (servizio/problema), dove (città/indirizzo), eventuali dettagli importanti (urgenza, fascia oraria preferita, riferimenti). Tono professionale, no elenchi.",
+        },
+        { role: "user", content: "Riassumi la chiamata sulla base di questa trascrizione:\n\n{{transcript}}" },
+      ],
+    },
+    structuredDataPlan: {
+      enabled: true,
+      messages: [
+        {
+          role: "system",
+          content:
+            "Estrai dalla trascrizione della chiamata i dati del cliente. Rispondi SOLO con JSON valido che rispetta lo schema fornito. Se un dato NON è stato detto esplicitamente, usa stringa vuota (''). NON inventare. Per il campo 'servizio' scegli SOLO uno dei valori dell'enum.",
+        },
+        { role: "user", content: "Estrai i dati da questa trascrizione:\n\n{{transcript}}" },
+      ],
+      schema: {
+        type: "object",
+        properties: {
+          nome:       { type: "string", description: "Nome di battesimo del chiamante (es. Mario)" },
+          cognome:    { type: "string", description: "Cognome del chiamante (es. Rossi)" },
+          azienda:    { type: "string", description: "Nome dell'azienda/attività se il chiamante non è un privato. Vuoto per privati cittadini." },
+          cellulare:  { type: "string", description: "Numero cellulare se il chiamante (da fisso) lo ha lasciato. Vuoto se chiama da mobile o non lo ha dato." },
+          indirizzo:  { type: "string", description: "Via + numero civico dove fare l'intervento. Vuoto se non specificato." },
+          "città":    { type: "string", description: "Città o paese dell'intervento. NON dare per scontato Catania." },
+          cap:        { type: "string", description: "CAP a 5 cifre se detto. Vuoto altrimenti." },
+          servizio: {
+            type: "string",
+            description: "Servizio richiesto. Scegli UNO dei valori dell'enum sulla base del problema descritto.",
+            enum: [
+              "Espurgo",
+              "Videoispezione",
+              "Relining",
+              "Montaggio amex",
+              "Pulizia cisterne",
+              "Mappatura reti",
+              "Analisi dei dati",
+              "Ripristino manufatti",
+              "Impermeabilizzazione",
+              "Prove di tenuta",
+              "Non classificato",
+            ],
+          },
+          problema: { type: "string", description: "Descrizione del problema riportato dal cliente in 1-2 frasi." },
+          source:   { type: "string", description: "Come il chiamante ha trovato il numero (es. 'Google', 'passaparola', 'volantino'). Vuoto se non chiesto/non risposto." },
+        },
+        required: [],
+      },
+    },
+    successEvaluationPlan: {
+      enabled: true,
+      rubric: "PassFail",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Valuta se la chiamata si è chiusa con un lead utile. PASS se sono stati raccolti almeno nome+indirizzo+servizio. FAIL se la chiamata si è chiusa senza dati essenziali.",
+        },
+        { role: "user", content: "Valuta questa chiamata:\n\n{{transcript}}" },
+      ],
+    },
+  };
+
+  try {
+    const r = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ analysisPlan }),
+    });
+    const body = await r.json();
+    res.status(r.status).json({
+      status: r.status,
+      ok: r.ok,
+      patched_analysisPlan_keys: Object.keys(analysisPlan),
+      response: body,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Debug VAPI: configurazione COMPLETA assistant (incluso analysisPlan/
 // structuredOutputs che determinano se VAPI estrae dati dalla conversazione).
 app.get("/debug/vapi-assistant-full/:id", async (req, res) => {
