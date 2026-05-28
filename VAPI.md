@@ -1,8 +1,23 @@
 # VAPI — Stato + Procedura ripristino
 
 > Data: 2026-05-28
-> Stato attuale: **VAPI piattaforma DEGRADED da 5h+** (https://status.vapi.ai)
+> Stato attuale: **VAPI piattaforma con guasti infrastrutturali** (status.vapi.ai degraded + chiamate falliscono con `vapifault-worker-not-available`, login OAuth GitHub broken)
 > Workaround attivo: bypass VAPI sul numero IT — chiamate gestite dal bot direct
+>
+> ## ⚠️ IMPORTANTE — verifica eseguita 28/05 ore 15:30 circa
+>
+> L'utente preoccupato che il problema fosse del suo account VAPI (login GitHub
+> impossibile). **Verificato che NON è così**:
+>
+> - ✅ API key VAPI valida (prefix ec1975cf)
+> - ✅ Account intatto (assistants Ecosan + Riley presenti)
+> - ✅ Numeri configurati bene (+39 e +1)
+> - ✅ Tutte le risorse lette via /debug/vapi rispondono 200
+> - ❌ Chiamate live falliscono con: `error-vapifault-worker-not-available`
+>   e `error-providerfault-transport-never-connected` → problema infrastruttura VAPI
+> - ❌ Login OAuth GitHub broken → probabilmente lo stesso backend in errore
+>
+> **Niente da fixare lato nostro.** Aspettare risoluzione VAPI.
 
 ---
 
