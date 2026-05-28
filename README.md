@@ -167,5 +167,30 @@ Tutti i log sono in console. Per produzione, aggiungi:
 | `TWILIO_AUTH_TOKEN` | [console.twilio.com](https://console.twilio.com) → Dashboard |
 | `TWILIO_PHONE_NUMBER` | [console.twilio.com](https://console.twilio.com) → Phone Numbers |
 | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com/api-keys) |
-| `AIRTABLE_API_KEY` | [airtable.com/create/tokens](https://airtable.com/create/tokens) |
-| `AIRTABLE_BASE_ID` | URL della tua base: `airtable.com/appXXXXXX/...` |
+| `AIRTABLE_API_KEY` | (legacy, non più usato per lead nuovi — vedi sotto) |
+| `AIRTABLE_BASE_ID` | (legacy, non più usato per lead nuovi — vedi sotto) |
+| `CRM_WEBHOOK_URL` | URL pubblico backend CRM Ecosan (es. `https://crm-dashboard-production-XXXX.up.railway.app`) |
+| `CRM_VOICE_BOT_SECRET` | Stesso valore di `VOICE_BOT_WEBHOOK_SECRET` impostato sul CRM Ecosan |
+
+---
+
+## 🔄 28/05/2026 — Switch da Airtable a CRM Ecosan
+
+I lead generati dalle chiamate vocali vengono ora salvati nel **CRM Ecosan** (NestJS) tramite il webhook `POST /api/v1/webhooks/voice-bot/leads`. Il CRM diventa la **single source of truth** e sincronizza automaticamente i lead su Airtable via outbox (no più doppio scrittore).
+
+**Flusso aggiornato:**
+```
+Chiamata VAPI → estrazione dati → dataSaver.saveCallData()
+   → crm.saveLead()  ── HTTPS ──> CRM /webhooks/voice-bot/leads
+                                      └─→ Lead + Activity + Timeline (DB Postgres)
+                                      └─→ Outbox: mirror automatico ad Airtable
+   → Telegram (notifica reparto)  [invariato]
+   → Email Gmail (notifica)       [invariato]
+```
+
+**Env vars necessarie:**
+- `CRM_WEBHOOK_URL` — URL pubblico del backend CRM (Railway "crm dashboard")
+- `CRM_VOICE_BOT_SECRET` — chiave segreta condivisa col CRM (env `VOICE_BOT_WEBHOOK_SECRET` lato CRM)
+
+**Rollback rapido** (in caso di problemi col CRM):
+In `dataSaver.js`, sostituisci `require("./crm")` con `require("./airtable")`. Il modulo `airtable.js` è ancora presente nel repo.

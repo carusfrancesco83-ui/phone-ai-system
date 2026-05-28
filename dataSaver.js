@@ -1,12 +1,21 @@
 // services/dataSaver.js
-const { saveLead } = require("./airtable");
+//
+// 2026-05-28 — Switch da Airtable diretto → CRM webhook:
+// I lead ora vengono salvati nel CRM Ecosan (NestJS) che è la single source
+// of truth. Il CRM ha un outbox che mirror automaticamente i lead su Airtable,
+// quindi non serve più la doppia scrittura.
+//
+// Vecchio import: const { saveLead } = require("./airtable");
+// (airtable.js resta nel repo per eventuale rollback rapido)
+const { saveLead } = require("./crm");
 const { sendWhatsAppNotifica } = require("./whatsapp");
 const { sendEmailNotifica } = require("./gmail");
 const { generateSummary } = require("./openai");
 
 /**
- * Salva i dati raccolti dalla chiamata vocale nella tabella Leads.
- * canale e chatid vengono impostati automaticamente dal sistema.
+ * Salva i dati raccolti dalla chiamata vocale sul CRM Ecosan.
+ * Il CRM crea Lead + Activity CALL + Timeline entry, e poi sincronizza
+ * automaticamente su Airtable via outbox (no più doppio scrittore).
  */
 async function saveCallData({ callSid, phoneNumber, extractedData, transcript }) {
   try {
@@ -21,6 +30,7 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
     const leadId = await saveLead({
       nome:              extractedData?.nome     || "",
       cognome:           extractedData?.cognome  || "",
+      azienda:           extractedData?.azienda  || "",
       telefono:          phoneNumber || extractedData?.telefono || "",
       email:             extractedData?.email    || "",
       indirizzo:         extractedData?.indirizzo || "",
@@ -28,12 +38,11 @@ async function saveCallData({ callSid, phoneNumber, extractedData, transcript })
       cap:               extractedData?.cap      || "",
       servizio:          extractedData?.servizio || "",
       problema:          extractedData?.problema || "",
-      source:            extractedData?.source   || "",
-      messaggiooriginale: transcript.split("\n").filter(r => r.startsWith("Chiamante:")).map(r => r.replace("Chiamante: ", "")).join(" | "),
-      canale:            "Chiamata Vocale",
-      user:              phoneNumber,
-      chatid:            callSid,
-      noteInterne,
+      source:            extractedData?.source   || "voice_bot",
+      chatid:            callSid,           // → callId + x-event-id (idempotency)
+      noteInterne,                          // preprended a problem nel CRM
+      transcript,                           // passato come campo dedicato al CRM
+      callStartedAt:     new Date().toISOString(),
     });
 
     console.log(`✅ Lead chiamata salvato: ${leadId}`);
