@@ -36,9 +36,9 @@ router.post("/incoming", async (req, res) => {
     // Inizializza sessione AI in memoria
     openaiService.initSession(callSid, from);
 
-    // Messaggio di benvenuto
+    // Messaggio di benvenuto — include disclosure AI (AI Act EU / Codice del Consumo)
     const businessName = process.env.BUSINESS_NAME || "la nostra azienda";
-    const welcomeText = `${getGreeting()}, sono l'assistente di ${businessName}. Come posso aiutarla?`;
+    const welcomeText = `${businessName}, ${getGreeting().toLowerCase()}. Sono un assistente vocale automatico, mi dica.`;
 
     // Aggiungi alla history della sessione
     const session = openaiService.getSession(callSid);

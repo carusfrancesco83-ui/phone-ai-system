@@ -110,7 +110,8 @@ router.post("/webhook", async (req, res) => {
   // assistantId fisso impostato, altrimenti VAPI non invia questo evento.
   if (type === "assistant-request") {
     const greeting = getTimeBasedGreeting();
-    const firstMessage = `Ecosan, ${greeting}, mi dica.`;
+    // Disclosure AI obbligatoria (AI Act EU / Codice del Consumo).
+    const firstMessage = `Ecosan, ${greeting}. Sono un assistente vocale automatico, mi dica.`;
     // Determina se il chiamante sta usando un fisso o un mobile italiano.
     // Mobile IT = +39 seguito da 3xxxxxxxxx. Tutto il resto (fisso italiano
     // 0xx, numeri esteri, numero privato/blocked) viene trattato come "FISSO"
