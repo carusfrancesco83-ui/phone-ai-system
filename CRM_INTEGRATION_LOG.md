@@ -97,7 +97,11 @@ curl -X POST https://phone-ai-system-production.up.railway.app/twilio/incoming \
 
 ---
 
-## 🚨 PROBLEMA APERTO: chiamate reali squillano a vuoto
+## ✅ PROBLEMA RISOLTO 2026-05-31
+
+Il "squilla a vuoto" del 2026-05-28 NON era Twilio: era l'incident infrastrutturale VAPI documentato in `VAPI.md`. Risolto da VAPI entro il 2026-05-31. Webhook Twilio del +39 verificato live alle 08:10Z: punta a `api.vapi.ai/twilio/inbound_call`, chiamate funzionano, disclosure AI attiva. Le sezioni qui sotto sono conservate come storico della diagnosi (in parte fuorviante: indicava Twilio come causa probabile, ma la vera causa era VAPI).
+
+## 📜 Storico — diagnosi 2026-05-28 (problema chiamate reali squillano a vuoto)
 
 **Sintomo**: l'utente chiama il numero Twilio del bot, ma il numero **squilla a vuoto** senza che l'AI risponda.
 

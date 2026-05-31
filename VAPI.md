@@ -1,23 +1,35 @@
 # VAPI — Stato + Procedura ripristino
 
-> Data: 2026-05-28
-> Stato attuale: **VAPI piattaforma con guasti infrastrutturali** (status.vapi.ai degraded + chiamate falliscono con `vapifault-worker-not-available`, login OAuth GitHub broken)
-> Workaround attivo: bypass VAPI sul numero IT — chiamate gestite dal bot direct
->
-> ## ⚠️ IMPORTANTE — verifica eseguita 28/05 ore 15:30 circa
->
-> L'utente preoccupato che il problema fosse del suo account VAPI (login GitHub
-> impossibile). **Verificato che NON è così**:
+> Data documento: 2026-05-28 (originale) / 2026-05-31 (aggiornamento stato)
+> **Stato attuale (verificato 2026-05-31)**: ✅ VAPI operativo, bypass disattivato, disclosure AI applicata.
+
+## ✅ STATO 2026-05-31 — Tutto risolto
+
+- Piattaforma VAPI: tornata operativa, dashboard accessibile, chiamate live funzionano.
+- Webhook Twilio del +39 800 940 397: **ripristinato a `https://api.vapi.ai/twilio/inbound_call`** (verificato live alle 08:10Z con GET `IncomingPhoneNumbers`). Il bypass su bot direct è disattivato.
+- Numero +1 839 225 2468: stesso assistantId Ecosan, già operativo.
+- Disclosure AI (AI Act EU + Codice del Consumo) applicata su 3 path:
+  - Assistant Ecosan VAPI (`67dde60b-...`) aggiornato via API PATCH il 2026-05-31T08:05Z: nuovo `firstMessage = "Ecosan, salve. Sono un assistente vocale automatico, mi dica."` + 2 modifiche al system prompt (sezione "PRIMA RISPOSTA AL CLIENTE" e regola "COSE DA NON FARE MAI" adattata).
+  - Bot direct `twilio.js` welcomeText + `systemPrompt.js` step 1 (commit `07c4ebb`) — fallback dormiente.
+  - vapi.js `assistant-request` override `firstMessage` (commit `07c4ebb`) — pronto per pattern dinamico time-based futuro.
+
+La sezione storica qui sotto descrive l'incident del 2026-05-28 e il bypass allora attivo. Conservata come riferimento.
+
+---
+
+## 📜 Storico — Incident VAPI 2026-05-28 (RISOLTO)
+
+> Verifica eseguita 28/05 ore 15:30 circa: l'utente era preoccupato che il problema fosse del suo account VAPI (login GitHub impossibile). **Verificato che NON era così**:
 >
 > - ✅ API key VAPI valida (prefix ec1975cf)
 > - ✅ Account intatto (assistants Ecosan + Riley presenti)
 > - ✅ Numeri configurati bene (+39 e +1)
-> - ✅ Tutte le risorse lette via /debug/vapi rispondono 200
-> - ❌ Chiamate live falliscono con: `error-vapifault-worker-not-available`
+> - ✅ Tutte le risorse lette via /debug/vapi rispondevano 200
+> - ❌ Chiamate live fallivano con: `error-vapifault-worker-not-available`
 >   e `error-providerfault-transport-never-connected` → problema infrastruttura VAPI
 > - ❌ Login OAuth GitHub broken → probabilmente lo stesso backend in errore
 >
-> **Niente da fixare lato nostro.** Aspettare risoluzione VAPI.
+> **Risolto entro il 2026-05-31** senza interventi lato nostro.
 
 ---
 
